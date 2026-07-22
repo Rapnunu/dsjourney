@@ -1,0 +1,305 @@
+"use client";
+
+import { useState, useMemo, useCallback } from "react";
+import { Search, Clock, X } from "lucide-react";
+import { mockRoadmapData } from "../data";
+import { CategoryCard } from "./category-card";
+import type { RoadmapCategory, MasteryLevel } from "../types";
+import {
+  MASTERY_CONFIG,
+  MASTERY_WEIGHTS,
+  MASTERY_REMAINING_FACTOR,
+} from "../types";
+
+const masteryOrder: MasteryLevel[] = [
+  "not_started",
+  "learning",
+  "practiced",
+  "mastered",
+];
+
+type MasteryFilter = "all" | MasteryLevel;
+
+export function RoadmapView() {
+  const [categories, setCategories] = useState<RoadmapCategory[]>(() =>
+    JSON.parse(JSON.stringify(mockRoadmapData))
+  );
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(
+    () => new Set([mockRoadmapData[0]?.id])
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [masteryFilter, setMasteryFilter] = useState<MasteryFilter>("all");
+
+  const toggleCategory = useCallback((id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleMasteryChange = useCallback(
+    (topicId: string, level: MasteryLevel) => {
+      setCategories((prev) =>
+        prev.map((cat) => ({
+          ...cat,
+          topics: cat.topics.map((t) =>
+            t.id === topicId ? { ...t, mastery: level } : t
+          ),
+        }))
+      );
+    },
+    []
+  );
+
+  // Filter categories/topics by search + mastery filter
+  const filteredCategories = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+
+    return categories
+      .map((cat) => {
+        let topics = cat.topics;
+
+        // Apply mastery filter
+        if (masteryFilter !== "all") {
+          topics = topics.filter((t) => t.mastery === masteryFilter);
+        }
+
+        // Apply search filter
+        if (query) {
+          topics = topics.filter(
+            (t) =>
+              t.name.toLowerCase().includes(query) ||
+              cat.name.toLowerCase().includes(query)
+          );
+        }
+
+        return { ...cat, topics };
+      })
+      .filter((cat) => cat.topics.length > 0);
+  }, [categories, searchQuery, masteryFilter]);
+
+  // Compute overall stats from the FULL dataset (not filtered)
+  const overallStats = useMemo(() => {
+    const allTopics = categories.flatMap((c) => c.topics);
+    const total = allTopics.length;
+
+    const counts: Record<MasteryLevel, number> = {
+      not_started: 0,
+      learning: 0,
+      practiced: 0,
+      mastered: 0,
+    };
+    allTopics.forEach((t) => {
+      counts[t.mastery]++;
+    });
+
+    const readiness =
+      total > 0
+        ? Math.round(
+            (allTopics.reduce(
+              (sum, t) => sum + MASTERY_WEIGHTS[t.mastery],
+              0
+            ) /
+              total) *
+              100
+          )
+        : 0;
+
+    const totalHours = allTopics.reduce((sum, t) => sum + t.estimatedHours, 0);
+
+    const remainingHours = parseFloat(
+      allTopics
+        .reduce(
+          (sum, t) =>
+            sum + t.estimatedHours * MASTERY_REMAINING_FACTOR[t.mastery],
+          0
+        )
+        .toFixed(1)
+    );
+
+    return { total, counts, readiness, totalHours, remainingHours };
+  }, [categories]);
+
+  const isFiltering = searchQuery.trim() !== "" || masteryFilter !== "all";
+
+  return (
+    <div className="space-y-6">
+      {/* Summary stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {masteryOrder.map((level) => {
+          const config = MASTERY_CONFIG[level];
+          return (
+            <div
+              key={level}
+              className="rounded-lg border border-border-subtle bg-bg-surface/50 px-4 py-3"
+            >
+              <p className="text-xs text-text-muted mb-1">{config.label}</p>
+              <p
+                className={`text-2xl font-semibold tabular-nums ${config.activeColor}`}
+              >
+                {overallStats.counts[level]}
+              </p>
+              <p className="text-xs text-text-muted mt-0.5">
+                of {overallStats.total} topics
+              </p>
+            </div>
+          );
+        })}
+
+        {/* Overall readiness */}
+        <div className="rounded-lg border border-border-subtle bg-bg-surface/50 px-4 py-3">
+          <p className="text-xs text-text-muted mb-1">Readiness</p>
+          <p className="text-2xl font-semibold tabular-nums text-accent">
+            {overallStats.readiness}%
+          </p>
+          <p className="text-xs text-text-muted mt-0.5">overall</p>
+        </div>
+
+        {/* Remaining hours */}
+        <div className="rounded-lg border border-border-subtle bg-bg-surface/50 px-4 py-3">
+          <p className="text-xs text-text-muted mb-1">Remaining</p>
+          <div className="flex items-baseline gap-1">
+            <p className="text-2xl font-semibold tabular-nums text-text-primary">
+              {overallStats.remainingHours}
+            </p>
+            <span className="text-sm text-text-muted">hrs</span>
+          </div>
+          <p className="text-xs text-text-muted mt-0.5">
+            of {overallStats.totalHours}h total
+          </p>
+        </div>
+      </div>
+
+      {/* Search + Mastery filters */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Search bar */}
+        <div className="relative flex-1 max-w-md">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search topics..."
+            className="w-full h-9 pl-9 pr-9 rounded-lg border border-border-primary bg-bg-surface/50 text-sm text-text-primary
+              placeholder:text-text-muted
+              focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent
+              transition-colors duration-150"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary p-0.5 rounded transition-colors"
+              aria-label="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Mastery filter pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto">
+          <FilterPill
+            label="All"
+            isActive={masteryFilter === "all"}
+            onClick={() => setMasteryFilter("all")}
+            count={overallStats.total}
+          />
+          {masteryOrder.map((level) => {
+            const config = MASTERY_CONFIG[level];
+            return (
+              <FilterPill
+                key={level}
+                label={config.label}
+                isActive={masteryFilter === level}
+                onClick={() =>
+                  setMasteryFilter(masteryFilter === level ? "all" : level)
+                }
+                count={overallStats.counts[level]}
+                activeColor={config.activeColor}
+                activeBg={config.activeBg}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Category cards */}
+      <div className="space-y-3">
+        {filteredCategories.length > 0 ? (
+          filteredCategories.map((category) => (
+            <CategoryCard
+              key={category.id}
+              category={category}
+              isExpanded={expandedIds.has(category.id)}
+              onToggle={() => toggleCategory(category.id)}
+              onMasteryChange={handleMasteryChange}
+            />
+          ))
+        ) : (
+          <div className="rounded-xl border border-dashed border-border-primary bg-bg-surface/50 p-12 text-center">
+            <p className="text-text-muted text-sm">
+              {isFiltering
+                ? "No topics match your search or filter"
+                : "No topics added to your roadmap yet"}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ──── Filter Pill ──── */
+
+interface FilterPillProps {
+  label: string;
+  isActive: boolean;
+  onClick: () => void;
+  count: number;
+  activeColor?: string;
+  activeBg?: string;
+}
+
+function FilterPill({
+  label,
+  isActive,
+  onClick,
+  count,
+  activeColor,
+  activeBg,
+}: FilterPillProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+        transition-all duration-150 whitespace-nowrap cursor-pointer
+        focus-ring
+        ${
+          isActive
+            ? activeColor && activeBg
+              ? `${activeBg} ${activeColor} ring-1 ring-current/20`
+              : "bg-accent-muted text-accent ring-1 ring-accent/20"
+            : "text-text-muted hover:text-text-secondary hover:bg-bg-surface-hover"
+        }
+      `}
+    >
+      {label}
+      <span
+        className={`tabular-nums ${
+          isActive ? "opacity-80" : "opacity-50"
+        }`}
+      >
+        {count}
+      </span>
+    </button>
+  );
+}
