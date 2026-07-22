@@ -1,3 +1,1 @@
-// Readiness feature module
-// Components, hooks, and utilities for readiness assessment
-export {};
+export { ReadinessView } from "./components/readiness-view";
