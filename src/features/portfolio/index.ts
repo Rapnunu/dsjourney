@@ -1,3 +1,1 @@
-// Portfolio feature module
-// Components, hooks, and utilities for portfolio showcase
-export {};
+export { PortfolioView } from "./components/portfolio-view";
