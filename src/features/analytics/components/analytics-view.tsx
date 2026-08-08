@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useMemo } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { BarChart3 } from "lucide-react";
 import { KpiCards } from "./kpi-cards";
@@ -14,13 +15,30 @@ import {
   getDifficultTopics,
   getProgressComparison,
 } from "../data";
+import { mockSessions } from "../../sessions/data";
+import { getStoredSessions } from "@/lib/storage";
+import type { StudySession } from "../../sessions/types";
 
 export function AnalyticsView() {
-  const kpiStats = getKpiStats();
-  const categoryHours = getCategoryHours();
-  const weeklyActivity = getWeeklyActivity();
-  const difficultTopics = getDifficultTopics();
-  const progressData = getProgressComparison();
+  // Always start with mockSessions so server and client HTML match
+  const [sessions, setSessions] = useState<StudySession[]>(
+    () => JSON.parse(JSON.stringify(mockSessions))
+  );
+
+  // After mount: load persisted sessions from localStorage
+  useEffect(() => {
+    const stored = getStoredSessions();
+    if (stored !== null && stored.length > 0) {
+      setSessions(stored);
+    }
+  }, []);
+
+  // Memoize analytics calculations so they only rerun when sessions change
+  const kpiStats = useMemo(() => getKpiStats(sessions), [sessions]);
+  const categoryHours = useMemo(() => getCategoryHours(sessions), [sessions]);
+  const weeklyActivity = useMemo(() => getWeeklyActivity(sessions), [sessions]);
+  const difficultTopics = useMemo(() => getDifficultTopics(sessions), [sessions]);
+  const progressData = useMemo(() => getProgressComparison(sessions), [sessions]);
 
   return (
     <div>
@@ -53,3 +71,4 @@ export function AnalyticsView() {
     </div>
   );
 }
+

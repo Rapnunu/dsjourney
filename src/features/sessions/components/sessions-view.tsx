@@ -1,23 +1,54 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { BookOpen, Clock, TrendingUp } from "lucide-react";
 import { SessionForm } from "./session-form";
 import { SessionTable } from "./session-table";
 import { mockSessions, topicOptions } from "../data";
+import { getStoredSessions, saveStoredSessions } from "@/lib/storage";
 import type { StudySession } from "../types";
 
 export function SessionsView() {
-  const [sessions, setSessions] = useState<StudySession[]>(() =>
-    JSON.parse(JSON.stringify(mockSessions))
+  // Always start with mockSessions so server and client render identically
+  const [sessions, setSessions] = useState<StudySession[]>(
+    () => JSON.parse(JSON.stringify(mockSessions))
   );
+  const [isInitialized, setIsInitialized] = useState(false);
+
   const [editingSession, setEditingSession] = useState<StudySession | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
+
+  // ── After mount: load saved sessions from localStorage ──
+  useEffect(() => {
+    const stored = getStoredSessions();
+    if (stored !== null && stored.length > 0) {
+      setSessions(stored);
+    }
+    // If nothing was stored, we keep the mockSessions already in state
+    setIsInitialized(true);
+  }, []);
+
+  // ── After initialization: persist every sessions change to localStorage ──
+  useEffect(() => {
+    if (!isInitialized) return;
+    saveStoredSessions(sessions);
+  }, [sessions, isInitialized]);
+
+  /**
+   * Wrapper around setSessions for add / edit / delete.
+   * Persistence is handled by the useEffect above.
+   */
+  const updateSessions = useCallback(
+    (updater: (prev: StudySession[]) => StudySession[]) => {
+      setSessions((prev) => updater(prev));
+    },
+    [],
+  );
 
   const handleSubmit = (data: Omit<StudySession, "id" | "createdAt">) => {
     if (editingSession) {
       // Update existing
-      setSessions((prev) =>
+      updateSessions((prev) =>
         prev.map((s) =>
           s.id === editingSession.id
             ? { ...s, ...data }
@@ -32,7 +63,7 @@ export function SessionsView() {
         id: `s-${Date.now()}`,
         createdAt: new Date().toISOString(),
       };
-      setSessions((prev) => [newSession, ...prev]);
+      updateSessions((prev) => [newSession, ...prev]);
     }
   };
 
@@ -42,7 +73,7 @@ export function SessionsView() {
   };
 
   const handleDelete = (sessionId: string) => {
-    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+    updateSessions((prev) => prev.filter((s) => s.id !== sessionId));
     if (editingSession?.id === sessionId) {
       setEditingSession(null);
     }

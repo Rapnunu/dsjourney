@@ -1,6 +1,6 @@
-import { mockSessions } from "../sessions/data";
 import { mockRoadmapData } from "../roadmap/data";
 import { MASTERY_WEIGHTS } from "../roadmap/types";
+import type { StudySession } from "../sessions/types";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -49,15 +49,15 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 // ── KPI stats ──────────────────────────────────────────────────────────
 
-export function getKpiStats(): KpiStats {
+export function getKpiStats(sessions: StudySession[]): KpiStats {
   const totalHours = parseFloat(
-    mockSessions.reduce((sum, s) => sum + s.hoursStudied, 0).toFixed(1)
+    sessions.reduce((sum, s) => sum + s.hoursStudied, 0).toFixed(1)
   );
-  const totalSessions = mockSessions.length;
+  const totalSessions = sessions.length;
 
   // Streak: consecutive days ending at mock "today" (2026-07-22) or yesterday
   const today = new Date("2026-07-22");
-  const sessionDates = new Set(mockSessions.map((s) => s.date));
+  const sessionDates = new Set(sessions.map((s) => s.date));
   let streak = 0;
   let checkDate = new Date(today);
   const todayStr = checkDate.toISOString().split("T")[0];
@@ -75,21 +75,24 @@ export function getKpiStats(): KpiStats {
     }
   }
 
-  const avgDifficulty = parseFloat(
-    (
-      mockSessions.reduce((sum, s) => sum + s.difficultyRating, 0) /
-      mockSessions.length
-    ).toFixed(1)
-  );
+  const avgDifficulty =
+    totalSessions > 0
+      ? parseFloat(
+          (
+            sessions.reduce((sum, s) => sum + s.difficultyRating, 0) /
+            totalSessions
+          ).toFixed(1)
+        )
+      : 0;
 
   return { totalHours, totalSessions, currentStreak: streak, avgDifficulty };
 }
 
 // ── Study hours by category ────────────────────────────────────────────
 
-export function getCategoryHours(): CategoryHours[] {
+export function getCategoryHours(sessions: StudySession[]): CategoryHours[] {
   const hourMap = new Map<string, number>();
-  for (const s of mockSessions) {
+  for (const s of sessions) {
     hourMap.set(s.categoryName, (hourMap.get(s.categoryName) ?? 0) + s.hoursStudied);
   }
 
@@ -110,13 +113,13 @@ export function getCategoryHours(): CategoryHours[] {
 
 // ── Weekly activity (Mon–Sun for the current week) ─────────────────────
 
-export function getWeeklyActivity(): DailyActivity[] {
+export function getWeeklyActivity(sessions: StudySession[]): DailyActivity[] {
   // Mock "today" is 2026-07-22 (Wednesday). Build Mon–Sun for that week.
   const monday = new Date("2026-07-20"); // Monday of the week
   const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   const sessionHoursByDate = new Map<string, number>();
-  for (const s of mockSessions) {
+  for (const s of sessions) {
     sessionHoursByDate.set(s.date, (sessionHoursByDate.get(s.date) ?? 0) + s.hoursStudied);
   }
 
@@ -134,10 +137,10 @@ export function getWeeklyActivity(): DailyActivity[] {
 
 // ── Difficult topics ───────────────────────────────────────────────────
 
-export function getDifficultTopics(): DifficultTopic[] {
+export function getDifficultTopics(sessions: StudySession[]): DifficultTopic[] {
   const topicMap = new Map<string, { categoryName: string; totalDiff: number; count: number }>();
 
-  for (const s of mockSessions) {
+  for (const s of sessions) {
     const existing = topicMap.get(s.topicName);
     if (existing) {
       existing.totalDiff += s.difficultyRating;
@@ -163,9 +166,9 @@ export function getDifficultTopics(): DifficultTopic[] {
 
 // ── Progress vs time comparison ────────────────────────────────────────
 
-export function getProgressComparison(): ProgressComparison[] {
+export function getProgressComparison(sessions: StudySession[]): ProgressComparison[] {
   const hourMap = new Map<string, number>();
-  for (const s of mockSessions) {
+  for (const s of sessions) {
     hourMap.set(s.categoryName, (hourMap.get(s.categoryName) ?? 0) + s.hoursStudied);
   }
 
@@ -187,3 +190,4 @@ export function getProgressComparison(): ProgressComparison[] {
     };
   });
 }
+
