@@ -1,7 +1,7 @@
 import { mockRoadmapData } from "../roadmap/data";
 import { MASTERY_WEIGHTS, MASTERY_REMAINING_FACTOR } from "../roadmap/types";
 import type { MasteryLevel } from "../roadmap/types";
-import { mockSessions } from "../sessions/data";
+import type { StudySession } from "../sessions/types";
 
 export interface DashboardStats {
   overallReadiness: number;
@@ -41,9 +41,9 @@ export function computeReadiness(): number {
 }
 
 // Compute study streak (consecutive days with sessions ending at today or yesterday)
-export function computeStreak(): number {
+export function computeStreak(sessions: StudySession[]): number {
   const today = new Date("2026-07-22"); // Mock "today"
-  const sessionDates = new Set(mockSessions.map((s) => s.date));
+  const sessionDates = new Set(sessions.map((s) => s.date));
   let streak = 0;
   let checkDate = new Date(today);
 
@@ -66,14 +66,14 @@ export function computeStreak(): number {
 }
 
 // Hours studied in the last 7 days
-export function computeWeeklyHours(): number {
+export function computeWeeklyHours(sessions: StudySession[]): number {
   const today = new Date("2026-07-22");
   const weekAgo = new Date(today);
   weekAgo.setDate(weekAgo.getDate() - 7);
   const weekAgoStr = weekAgo.toISOString().split("T")[0];
 
   return parseFloat(
-    mockSessions
+    sessions
       .filter((s) => s.date >= weekAgoStr)
       .reduce((sum, s) => sum + s.hoursStudied, 0)
       .toFixed(1)
@@ -81,12 +81,12 @@ export function computeWeeklyHours(): number {
 }
 
 // Get dashboard stats
-export function getDashboardStats(): DashboardStats {
+export function getDashboardStats(sessions: StudySession[]): DashboardStats {
   return {
     overallReadiness: computeReadiness(),
-    studyStreak: computeStreak(),
-    hoursThisWeek: computeWeeklyHours(),
-    totalSessions: mockSessions.length,
+    studyStreak: computeStreak(sessions),
+    hoursThisWeek: computeWeeklyHours(sessions),
+    totalSessions: sessions.length,
   };
 }
 

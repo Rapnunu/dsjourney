@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { BarChart3 } from "lucide-react";
 import { KpiCards } from "./kpi-cards";
@@ -15,25 +15,98 @@ import {
   getDifficultTopics,
   getProgressComparison,
 } from "../data";
-import { mockSessions } from "../../sessions/data";
-import { getStoredSessions } from "@/lib/storage";
-import type { StudySession } from "../../sessions/types";
+import { useSessionStore } from "@/features/sessions/session-provider";
+
+// ── Skeleton placeholders ──────────────────────────────────────────
+
+function SkeletonPulse({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <div
+      className={`animate-pulse rounded-lg bg-bg-surface/60 ${className ?? ""}`}
+      style={style}
+    />
+  );
+}
+
+function AnalyticsSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* KPI cards skeleton */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="rounded-xl border border-border-subtle bg-bg-surface/50 px-4 py-4 flex items-center gap-3"
+          >
+            <SkeletonPulse className="h-10 w-10 rounded-xl" />
+            <div className="flex-1 space-y-2">
+              <SkeletonPulse className="h-6 w-12" />
+              <SkeletonPulse className="h-3 w-20" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Charts row skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3 rounded-xl border border-border-primary bg-bg-surface/50 p-5 space-y-4">
+          <SkeletonPulse className="h-4 w-40" />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="space-y-1.5">
+              <div className="flex justify-between">
+                <SkeletonPulse className="h-3 w-24" />
+                <SkeletonPulse className="h-3 w-12" />
+              </div>
+              <SkeletonPulse className="h-3 w-full rounded-full" />
+            </div>
+          ))}
+        </div>
+        <div className="lg:col-span-2 rounded-xl border border-border-primary bg-bg-surface/50 p-5 space-y-4">
+          <SkeletonPulse className="h-4 w-28" />
+          <div className="flex items-end gap-2 h-40">
+            {[45, 65, 30, 55, 75, 40, 60].map((h, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                <SkeletonPulse
+                  className="w-full rounded-t-md"
+                  style={{ height: `${h}%` }}
+                />
+                <SkeletonPulse className="h-3 w-6" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Tables row skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div
+            key={i}
+            className="rounded-xl border border-border-primary bg-bg-surface/50 p-5 space-y-3"
+          >
+            <SkeletonPulse className="h-4 w-32" />
+            {Array.from({ length: 4 }).map((_, j) => (
+              <div key={j} className="flex items-center justify-between py-2">
+                <div className="space-y-1.5">
+                  <SkeletonPulse className="h-4 w-36" />
+                  <SkeletonPulse className="h-3 w-20" />
+                </div>
+                <SkeletonPulse className="h-4 w-10" />
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Main view ──────────────────────────────────────────────────────
 
 export function AnalyticsView() {
-  // Always start with mockSessions so server and client HTML match
-  const [sessions, setSessions] = useState<StudySession[]>(
-    () => JSON.parse(JSON.stringify(mockSessions))
-  );
+  const { sessions, isHydrated } = useSessionStore();
 
-  // After mount: load persisted sessions from localStorage
-  useEffect(() => {
-    const stored = getStoredSessions();
-    if (stored !== null && stored.length > 0) {
-      setSessions(stored);
-    }
-  }, []);
-
-  // Memoize analytics calculations so they only rerun when sessions change
+  // Memoize analytics calculations — recalculate only when sessions change
   const kpiStats = useMemo(() => getKpiStats(sessions), [sessions]);
   const categoryHours = useMemo(() => getCategoryHours(sessions), [sessions]);
   const weeklyActivity = useMemo(() => getWeeklyActivity(sessions), [sessions]);
@@ -48,26 +121,30 @@ export function AnalyticsView() {
         icon={<BarChart3 size={22} />}
       />
 
-      <div className="space-y-6">
-        {/* KPI cards */}
-        <KpiCards stats={kpiStats} />
+      {!isHydrated ? (
+        <AnalyticsSkeleton />
+      ) : (
+        <div className="space-y-6">
+          {/* KPI cards */}
+          <KpiCards stats={kpiStats} />
 
-        {/* Charts row */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3">
-            <HoursByCategory categories={categoryHours} />
+          {/* Charts row */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-3">
+              <HoursByCategory categories={categoryHours} />
+            </div>
+            <div className="lg:col-span-2">
+              <WeeklyActivity days={weeklyActivity} />
+            </div>
           </div>
-          <div className="lg:col-span-2">
-            <WeeklyActivity days={weeklyActivity} />
+
+          {/* Tables row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DifficultTopics topics={difficultTopics} />
+            <ProgressVsTime data={progressData} />
           </div>
         </div>
-
-        {/* Tables row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <DifficultTopics topics={difficultTopics} />
-          <ProgressVsTime data={progressData} />
-        </div>
-      </div>
+      )}
     </div>
   );
 }

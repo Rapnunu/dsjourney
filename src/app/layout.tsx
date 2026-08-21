@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { SidebarProvider } from "@/components/layout/sidebar-context";
+import { SessionProvider } from "@/features/sessions/session-provider";
 import { AppShell } from "@/components/layout/app-shell";
 
 const inter = Inter({
@@ -23,9 +24,12 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} dark h-full antialiased`}>
       <body className="h-full">
         <SidebarProvider>
-          <AppShell>{children}</AppShell>
+          <SessionProvider>
+            <AppShell>{children}</AppShell>
+          </SessionProvider>
         </SidebarProvider>
       </body>
     </html>
   );
 }
+

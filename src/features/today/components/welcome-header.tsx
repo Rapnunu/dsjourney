@@ -19,20 +19,32 @@ function getFormattedDate(): string {
 }
 
 export function WelcomeHeader() {
+  const [mounted, setMounted] = useState(false);
   const [greeting, setGreeting] = useState("Welcome back");
   const [dateStr, setDateStr] = useState("");
 
   useEffect(() => {
     setGreeting(getGreeting());
     setDateStr(getFormattedDate());
+    setMounted(true);
   }, []);
 
   return (
     <div className="mb-8">
       <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-text-primary">
-        {greeting}, <span className="text-accent">Raphael</span>
+        <span
+          className={`inline-block transition-opacity duration-300 ${mounted ? "opacity-100" : "opacity-0"}`}
+        >
+          {greeting},{" "}
+        </span>
+        <span className="text-accent">Raphael</span>
       </h1>
-      <p className="mt-1 text-sm text-text-secondary">{dateStr}</p>
+      <p
+        className={`mt-1 text-sm text-text-secondary transition-opacity duration-300 ${mounted ? "opacity-100" : "opacity-0"}`}
+      >
+        {dateStr || "\u00A0"}
+      </p>
     </div>
   );
 }
+

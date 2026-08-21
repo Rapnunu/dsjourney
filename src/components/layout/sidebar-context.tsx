@@ -21,13 +21,15 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
-  // Restore collapsed preference from localStorage
+  // Restore collapsed preference from localStorage after mount
   useEffect(() => {
     const stored = localStorage.getItem("sidebar-collapsed");
     if (stored !== null) {
       setIsCollapsed(JSON.parse(stored));
     }
+    setHasMounted(true);
   }, []);
 
   const toggleCollapsed = useCallback(() => {
@@ -51,10 +53,16 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
+  // Before mount, expose SSR-safe defaults so server/client HTML match
+  const contextValue = {
+    isCollapsed: hasMounted ? isCollapsed : false,
+    isMobileOpen,
+    toggleCollapsed,
+    setMobileOpen,
+  };
+
   return (
-    <SidebarContext.Provider
-      value={{ isCollapsed, isMobileOpen, toggleCollapsed, setMobileOpen }}
-    >
+    <SidebarContext.Provider value={contextValue}>
       {children}
     </SidebarContext.Provider>
   );
