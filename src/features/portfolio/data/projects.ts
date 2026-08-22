@@ -163,17 +163,17 @@ export interface PortfolioStats {
   portfolioScore: number;
 }
 
-export function getPortfolioStats(): PortfolioStats {
-  const total = mockProjects.length;
-  const completed = mockProjects.filter((p) => p.status === "completed").length;
-  const inProgress = mockProjects.filter((p) => p.status === "in_progress").length;
+export function getPortfolioStats(projects: Project[]): PortfolioStats {
+  const total = projects.length;
+  const completed = projects.filter((p) => p.status === "completed").length;
+  const inProgress = projects.filter((p) => p.status === "in_progress").length;
 
   // Score formula: completed projects weighted more, bonus for diversity of tech
-  const uniqueTechs = new Set(mockProjects.flatMap((p) => p.technologies)).size;
+  const uniqueTechs = new Set(projects.flatMap((p) => p.technologies)).size;
   const score = Math.min(
     100,
     Math.round(
-      (completed / total) * 50 +          // Completion weight
+      (total > 0 ? completed / total : 0) * 50 + // Completion weight
       (uniqueTechs / 20) * 30 +            // Tech diversity weight
       (inProgress > 0 ? 20 : 0)            // Active work bonus
     )
@@ -187,9 +187,9 @@ export function getPortfolioStats(): PortfolioStats {
   };
 }
 
-export function getUniqueTechnologies(): string[] {
+export function getUniqueTechnologies(projects: Project[]): string[] {
   const techs = new Set<string>();
-  for (const project of mockProjects) {
+  for (const project of projects) {
     for (const tech of project.technologies) {
       techs.add(tech);
     }
@@ -205,9 +205,9 @@ export interface RecruiterInsight {
   readinessSuggestions: string[];
 }
 
-export function getRecruiterInsight(): RecruiterInsight {
-  const stats = getPortfolioStats();
-  const techs = getUniqueTechnologies();
+export function getRecruiterInsight(projects: Project[]): RecruiterInsight {
+  const stats = getPortfolioStats(projects);
+  const techs = getUniqueTechnologies(projects);
 
   const hasPython = techs.includes("Python");
   const hasML = techs.some((t) => ["Scikit-learn", "XGBoost"].includes(t));
@@ -246,7 +246,9 @@ export function getRecruiterInsight(): RecruiterInsight {
     100,
     Math.round(
       (strengths.length / 7) * 60 +
-      (stats.completedProjects / stats.totalProjects) * 30 +
+      (stats.totalProjects > 0
+        ? stats.completedProjects / stats.totalProjects
+        : 0) * 30 +
       (stats.inProgressProjects > 0 ? 10 : 0)
     )
   );

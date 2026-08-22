@@ -8,10 +8,12 @@
 
 import type { StudySession } from "@/features/sessions/types";
 import type { RoadmapCategory } from "@/features/roadmap/types";
+import type { Project } from "@/features/portfolio/data/projects";
 
 // ── Constants ──────────────────────────────────────────────
 const SESSIONS_KEY = "ds-prep-tracker:sessions";
 const ROADMAP_KEY = "ds-prep-tracker:roadmap";
+const PORTFOLIO_KEY = "ds-prep-tracker:portfolio";
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -79,5 +81,31 @@ export function saveStoredRoadmap(roadmap: RoadmapCategory[]): void {
     localStorage.setItem(ROADMAP_KEY, JSON.stringify(roadmap));
   } catch {
     console.warn("Failed to save roadmap to localStorage.");
+  }
+}
+
+export function getStoredProjects(): Project[] | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = localStorage.getItem(PORTFOLIO_KEY);
+    if (raw === null) return null;
+
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return null;
+
+    return parsed as Project[];
+  } catch {
+    return null;
+  }
+}
+
+export function saveStoredProjects(projects: Project[]): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    localStorage.setItem(PORTFOLIO_KEY, JSON.stringify(projects));
+  } catch {
+    console.warn("Failed to save portfolio to localStorage.");
   }
 }

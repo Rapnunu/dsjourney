@@ -4,6 +4,7 @@ import "./globals.css";
 import { SidebarProvider } from "@/components/layout/sidebar-context";
 import { SessionProvider } from "@/features/sessions/session-provider";
 import { RoadmapProvider } from "@/features/roadmap/roadmap-provider";
+import { PortfolioProvider } from "@/features/portfolio/portfolio-provider";
 import { AppShell } from "@/components/layout/app-shell";
 
 const inter = Inter({
@@ -27,7 +28,9 @@ export default function RootLayout({
         <SidebarProvider>
           <SessionProvider>
             <RoadmapProvider>
-              <AppShell>{children}</AppShell>
+              <PortfolioProvider>
+                <AppShell>{children}</AppShell>
+              </PortfolioProvider>
             </RoadmapProvider>
           </SessionProvider>
         </SidebarProvider>

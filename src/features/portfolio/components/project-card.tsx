@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Pencil, Trash2 } from "lucide-react";
 
 function GithubIcon({ size = 13 }: { size?: number }) {
   return (
@@ -12,9 +12,11 @@ import { STATUS_CONFIG, getTechColor } from "../data/projects";
 
 interface ProjectCardProps {
   project: Project;
+  onEdit: (project: Project) => void;
+  onDelete: (project: Project) => void;
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
   const status = STATUS_CONFIG[project.status];
 
   return (
@@ -92,6 +94,14 @@ export function ProjectCard({ project }: ProjectCardProps) {
             Live Demo
           </a>
         )}
+        <div className="ml-auto flex items-center gap-1">
+          <button onClick={() => onEdit(project)} className="rounded-md p-1.5 text-text-muted hover:bg-bg-primary hover:text-accent focus-ring" aria-label={`Edit ${project.title}`}>
+            <Pencil size={14} />
+          </button>
+          <button onClick={() => onDelete(project)} className="rounded-md p-1.5 text-text-muted hover:bg-rose-500/10 hover:text-rose-400 focus-ring" aria-label={`Delete ${project.title}`}>
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
     </div>
   );
