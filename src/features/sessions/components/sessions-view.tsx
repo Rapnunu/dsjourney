@@ -87,17 +87,17 @@ function SessionsViewSkeleton() {
 // ── Main view ──────────────────────────────────────────────────────
 
 export function SessionsView() {
-  const { sessions, isHydrated, addSession, updateSession, deleteSession } = useSessionStore();
+  const { sessions, isHydrated, error, addSession, updateSession, deleteSession } = useSessionStore();
   const [editingSession, setEditingSession] = useState<StudySession | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = (data: Omit<StudySession, "id" | "createdAt">) => {
+  const handleSubmit = async (data: Omit<StudySession, "id" | "createdAt">) => {
     if (editingSession) {
-      updateSession(editingSession.id, data);
-      setEditingSession(null);
-    } else {
-      addSession(data);
+      const saved = await updateSession(editingSession.id, data);
+      if (saved) setEditingSession(null);
+      return saved;
     }
+    return addSession(data);
   };
 
   const handleEdit = (session: StudySession) => {
@@ -105,9 +105,9 @@ export function SessionsView() {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const handleDelete = (sessionId: string) => {
-    deleteSession(sessionId);
-    if (editingSession?.id === sessionId) {
+  const handleDelete = async (sessionId: string) => {
+    const deleted = await deleteSession(sessionId);
+    if (deleted && editingSession?.id === sessionId) {
       setEditingSession(null);
     }
   };
@@ -137,6 +137,11 @@ export function SessionsView() {
 
   return (
     <div className="space-y-8">
+      {error && (
+        <div role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
       {/* Summary stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="rounded-lg border border-border-subtle bg-bg-surface/50 px-4 py-3 flex items-center gap-3">

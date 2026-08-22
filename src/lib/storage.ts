@@ -12,6 +12,7 @@ import type { Project } from "@/features/portfolio/data/projects";
 
 // ── Constants ──────────────────────────────────────────────
 const SESSIONS_KEY = "ds-prep-tracker:sessions";
+const SESSIONS_MIGRATION_KEY = "ds-prep-tracker:sessions:supabase-migrated";
 const ROADMAP_KEY = "ds-prep-tracker:roadmap";
 const PORTFOLIO_KEY = "ds-prep-tracker:portfolio";
 
@@ -55,6 +56,25 @@ export function saveStoredSessions(sessions: StudySession[]): void {
   } catch {
     // Storage full or unavailable – nothing we can do here
     console.warn("Failed to save sessions to localStorage.");
+  }
+}
+
+export function isStoredSessionsMigrationComplete(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(SESSIONS_MIGRATION_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function completeStoredSessionsMigration(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(SESSIONS_MIGRATION_KEY, "true");
+    localStorage.removeItem(SESSIONS_KEY);
+  } catch {
+    console.warn("Failed to finalize the local Study Sessions migration.");
   }
 }
 
