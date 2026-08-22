@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { SidebarProvider } from "@/components/layout/sidebar-context";
 import { SessionProvider } from "@/features/sessions/session-provider";
+import { RoadmapProvider } from "@/features/roadmap/roadmap-provider";
 import { AppShell } from "@/components/layout/app-shell";
 
 const inter = Inter({
@@ -25,7 +26,9 @@ export default function RootLayout({
       <body className="h-full">
         <SidebarProvider>
           <SessionProvider>
-            <AppShell>{children}</AppShell>
+            <RoadmapProvider>
+              <AppShell>{children}</AppShell>
+            </RoadmapProvider>
           </SessionProvider>
         </SidebarProvider>
       </body>

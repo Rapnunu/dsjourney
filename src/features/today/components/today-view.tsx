@@ -9,6 +9,7 @@ import { TodaysGoals } from "./todays-goals";
 import { QuickActions } from "./quick-actions";
 import { getDashboardStats, getRecommendedTopic, getReviewTopics } from "../data";
 import { useSessionStore } from "@/features/sessions/session-provider";
+import { useRoadmapStore } from "@/features/roadmap/roadmap-provider";
 
 // ── Skeleton placeholders ──────────────────────────────────────────
 
@@ -85,14 +86,21 @@ function DashboardSkeleton() {
 // ── Main view ──────────────────────────────────────────────────────
 
 export function TodayView() {
-  const { sessions, isHydrated } = useSessionStore();
+  const { sessions, isHydrated: sessionsHydrated } = useSessionStore();
+  const { roadmap, isHydrated: roadmapHydrated } = useRoadmapStore();
+  const isHydrated = sessionsHydrated && roadmapHydrated;
 
   // Session-dependent stats (recalculate when sessions change)
-  const stats = useMemo(() => getDashboardStats(sessions), [sessions]);
+  const stats = useMemo(
+    () => getDashboardStats(sessions, roadmap),
+    [sessions, roadmap],
+  );
 
-  // These remain roadmap-based (unchanged)
-  const recommendedTopic = getRecommendedTopic();
-  const reviewTopics = getReviewTopics();
+  const recommendedTopic = useMemo(
+    () => getRecommendedTopic(roadmap),
+    [roadmap],
+  );
+  const reviewTopics = useMemo(() => getReviewTopics(roadmap), [roadmap]);
 
   return (
     <div>

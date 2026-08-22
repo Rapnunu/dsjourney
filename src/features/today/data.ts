@@ -1,6 +1,5 @@
-import { mockRoadmapData } from "../roadmap/data";
-import { MASTERY_WEIGHTS, MASTERY_REMAINING_FACTOR } from "../roadmap/types";
-import type { MasteryLevel } from "../roadmap/types";
+import { MASTERY_WEIGHTS } from "../roadmap/types";
+import type { MasteryLevel, RoadmapCategory } from "../roadmap/types";
 import type { StudySession } from "../sessions/types";
 
 export interface DashboardStats {
@@ -33,8 +32,8 @@ export interface TodayGoal {
 }
 
 // Compute overall readiness from roadmap data
-export function computeReadiness(): number {
-  const allTopics = mockRoadmapData.flatMap((c) => c.topics);
+export function computeReadiness(roadmap: RoadmapCategory[]): number {
+  const allTopics = roadmap.flatMap((c) => c.topics);
   if (allTopics.length === 0) return 0;
   const sum = allTopics.reduce((acc, t) => acc + MASTERY_WEIGHTS[t.mastery], 0);
   return Math.round((sum / allTopics.length) * 100);
@@ -45,7 +44,7 @@ export function computeStreak(sessions: StudySession[]): number {
   const today = new Date("2026-07-22"); // Mock "today"
   const sessionDates = new Set(sessions.map((s) => s.date));
   let streak = 0;
-  let checkDate = new Date(today);
+  const checkDate = new Date(today);
 
   // If no session today, start checking from yesterday
   const todayStr = checkDate.toISOString().split("T")[0];
@@ -81,9 +80,12 @@ export function computeWeeklyHours(sessions: StudySession[]): number {
 }
 
 // Get dashboard stats
-export function getDashboardStats(sessions: StudySession[]): DashboardStats {
+export function getDashboardStats(
+  sessions: StudySession[],
+  roadmap: RoadmapCategory[],
+): DashboardStats {
   return {
-    overallReadiness: computeReadiness(),
+    overallReadiness: computeReadiness(roadmap),
     studyStreak: computeStreak(sessions),
     hoursThisWeek: computeWeeklyHours(sessions),
     totalSessions: sessions.length,
@@ -92,8 +94,10 @@ export function getDashboardStats(sessions: StudySession[]): DashboardStats {
 
 // Get recommended next topic: pick from the lowest-readiness category,
 // choosing the first non-mastered topic
-export function getRecommendedTopic(): RecommendedTopic | null {
-  const categoryReadiness = mockRoadmapData.map((cat) => {
+export function getRecommendedTopic(
+  roadmap: RoadmapCategory[],
+): RecommendedTopic | null {
+  const categoryReadiness = roadmap.map((cat) => {
     const avg =
       cat.topics.length > 0
         ? cat.topics.reduce((sum, t) => sum + MASTERY_WEIGHTS[t.mastery], 0) /
@@ -131,7 +135,7 @@ export function getRecommendedTopic(): RecommendedTopic | null {
 }
 
 // Get topics due for review: mastery is learning/practiced but lastStudied > 5 days ago
-export function getReviewTopics(): ReviewTopic[] {
+export function getReviewTopics(roadmap: RoadmapCategory[]): ReviewTopic[] {
   const today = new Date("2026-07-22");
   const cutoff = new Date(today);
   cutoff.setDate(cutoff.getDate() - 5);
@@ -139,7 +143,7 @@ export function getReviewTopics(): ReviewTopic[] {
 
   const results: ReviewTopic[] = [];
 
-  for (const cat of mockRoadmapData) {
+  for (const cat of roadmap) {
     for (const topic of cat.topics) {
       if (
         (topic.mastery === "learning" || topic.mastery === "practiced") &&
