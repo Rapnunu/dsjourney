@@ -1,10 +1,17 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/auth")) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-bg-primary">
       {/* Sidebar */}
