@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { Search, Clock, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { mockRoadmapData } from "../data";
+import { useRoadmapStore } from "../roadmap-provider";
 import { CategoryCard } from "./category-card";
-import type { RoadmapCategory, MasteryLevel } from "../types";
+import type { MasteryLevel } from "../types";
 import {
   MASTERY_CONFIG,
   MASTERY_WEIGHTS,
@@ -21,9 +22,7 @@ const masteryOrder: MasteryLevel[] = [
 type MasteryFilter = "all" | MasteryLevel;
 
 export function RoadmapView() {
-  const [categories, setCategories] = useState<RoadmapCategory[]>(() =>
-    JSON.parse(JSON.stringify(mockRoadmapData))
-  );
+  const { roadmap: categories, isHydrated, updateMastery } = useRoadmapStore();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
     () => new Set([mockRoadmapData[0]?.id])
   );
@@ -44,16 +43,9 @@ export function RoadmapView() {
 
   const handleMasteryChange = useCallback(
     (topicId: string, level: MasteryLevel) => {
-      setCategories((prev) =>
-        prev.map((cat) => ({
-          ...cat,
-          topics: cat.topics.map((t) =>
-            t.id === topicId ? { ...t, mastery: level } : t
-          ),
-        }))
-      );
+      updateMastery(topicId, level);
     },
-    []
+    [updateMastery]
   );
 
   // Filter categories/topics by search + mastery filter
@@ -126,6 +118,8 @@ export function RoadmapView() {
   }, [categories]);
 
   const isFiltering = searchQuery.trim() !== "" || masteryFilter !== "all";
+
+  if (!isHydrated) return null;
 
   return (
     <div className="space-y-6">

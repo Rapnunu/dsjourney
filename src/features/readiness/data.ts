@@ -1,6 +1,5 @@
-import { mockRoadmapData } from "../roadmap/data";
 import { MASTERY_WEIGHTS, MASTERY_REMAINING_FACTOR } from "../roadmap/types";
-import type { MasteryLevel } from "../roadmap/types";
+import type { MasteryLevel, RoadmapCategory } from "../roadmap/types";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -57,8 +56,10 @@ const PROJECTS_READINESS = {
 
 // ── Computation ────────────────────────────────────────────────────────
 
-export function getCategoryReadiness(): CategoryReadiness[] {
-  const categories: CategoryReadiness[] = mockRoadmapData.map((cat) => {
+export function getCategoryReadiness(
+  roadmap: RoadmapCategory[],
+): CategoryReadiness[] {
+  const categories: CategoryReadiness[] = roadmap.map((cat) => {
     const readiness =
       cat.topics.length > 0
         ? Math.round(
@@ -88,8 +89,8 @@ export function getCategoryReadiness(): CategoryReadiness[] {
   return categories;
 }
 
-export function getOverallReadiness(): number {
-  const categories = getCategoryReadiness();
+export function getOverallReadiness(roadmap: RoadmapCategory[]): number {
+  const categories = getCategoryReadiness(roadmap);
   if (categories.length === 0) return 0;
   return Math.round(
     categories.reduce((sum, c) => sum + c.readiness, 0) / categories.length
@@ -104,13 +105,16 @@ export function getReadinessSummary(readiness: number): string {
   return "Just beginning your journey. Every session counts!";
 }
 
-export function getTopSkillGaps(count = 3): SkillGap[] {
-  const categories = getCategoryReadiness();
+export function getTopSkillGaps(
+  roadmap: RoadmapCategory[],
+  count = 3,
+): SkillGap[] {
+  const categories = getCategoryReadiness(roadmap);
   const sorted = [...categories].sort((a, b) => a.readiness - b.readiness);
 
   return sorted.slice(0, count).map((cat) => {
     // Compute hours remaining for non-project categories
-    const roadmapCat = mockRoadmapData.find((c) => c.id === cat.id);
+    const roadmapCat = roadmap.find((c) => c.id === cat.id);
     let hoursRemaining = 0;
     let topicsRemaining = 0;
 
@@ -137,19 +141,20 @@ export function getTopSkillGaps(count = 3): SkillGap[] {
   });
 }
 
-export function getRecommendedFocusTopics(): RecommendedFocus[] {
-  const allTopicCount = mockRoadmapData.reduce((s, c) => s + c.topics.length, 0) + PROJECTS_READINESS.topicCount;
-  const totalCategories = mockRoadmapData.length + 1; // +1 for projects
+export function getRecommendedFocusTopics(
+  roadmap: RoadmapCategory[],
+): RecommendedFocus[] {
+  const totalCategories = roadmap.length + 1; // +1 for projects
 
   const results: RecommendedFocus[] = [];
 
   // Sort categories by readiness ascending
-  const catReadiness = getCategoryReadiness();
+  const catReadiness = getCategoryReadiness(roadmap);
   const sorted = [...catReadiness].sort((a, b) => a.readiness - b.readiness);
 
   for (const cat of sorted) {
     if (results.length >= 4) break;
-    const roadmapCat = mockRoadmapData.find((c) => c.id === cat.id);
+    const roadmapCat = roadmap.find((c) => c.id === cat.id);
     if (!roadmapCat) {
       // Projects mock
       if (cat.readiness < 100) {
@@ -187,9 +192,11 @@ export function getRecommendedFocusTopics(): RecommendedFocus[] {
 
 // ── Internship Checklist ───────────────────────────────────────────────
 
-export function getInternshipChecklist(): ChecklistItem[] {
-  const catReadiness = getCategoryReadiness();
-  const overall = getOverallReadiness();
+export function getInternshipChecklist(
+  roadmap: RoadmapCategory[],
+): ChecklistItem[] {
+  const catReadiness = getCategoryReadiness(roadmap);
+  const overall = getOverallReadiness(roadmap);
   const pythonR = catReadiness.find((c) => c.id === "python")?.readiness ?? 0;
   const sqlR = catReadiness.find((c) => c.id === "sql")?.readiness ?? 0;
   const statsR = catReadiness.find((c) => c.id === "statistics")?.readiness ?? 0;

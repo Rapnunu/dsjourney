@@ -15,14 +15,26 @@ import {
   getRecommendedFocusTopics,
   getInternshipChecklist,
 } from "../data";
+import { useRoadmapStore } from "@/features/roadmap/roadmap-provider";
 
 export function ReadinessView() {
-  const overallReadiness = getOverallReadiness();
+  const { roadmap, isHydrated } = useRoadmapStore();
+  const overallReadiness = getOverallReadiness(roadmap);
   const summary = getReadinessSummary(overallReadiness);
-  const categories = getCategoryReadiness();
-  const gaps = getTopSkillGaps(3);
-  const focusTopics = getRecommendedFocusTopics();
-  const checklistItems = getInternshipChecklist();
+  const categories = getCategoryReadiness(roadmap);
+  const gaps = getTopSkillGaps(roadmap, 3);
+  const focusTopics = getRecommendedFocusTopics(roadmap);
+  const checklistItems = getInternshipChecklist(roadmap);
+
+  if (!isHydrated) {
+    return (
+      <PageHeader
+        title="Readiness"
+        subtitle="Assess your data science internship readiness"
+        icon={<Gauge size={22} />}
+      />
+    );
+  }
 
   return (
     <div>
