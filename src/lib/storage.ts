@@ -14,6 +14,7 @@ import type { Project } from "@/features/portfolio/data/projects";
 const SESSIONS_KEY = "ds-prep-tracker:sessions";
 const SESSIONS_MIGRATION_KEY = "ds-prep-tracker:sessions:supabase-migrated";
 const ROADMAP_KEY = "ds-prep-tracker:roadmap";
+const ROADMAP_MIGRATION_KEY = "ds-prep-tracker:roadmap:supabase-migrated";
 const PORTFOLIO_KEY = "ds-prep-tracker:portfolio";
 
 // ── Helpers ────────────────────────────────────────────────
@@ -101,6 +102,27 @@ export function saveStoredRoadmap(roadmap: RoadmapCategory[]): void {
     localStorage.setItem(ROADMAP_KEY, JSON.stringify(roadmap));
   } catch {
     console.warn("Failed to save roadmap to localStorage.");
+  }
+}
+
+export function isStoredRoadmapMigrationComplete(): boolean {
+  if (typeof window === "undefined") return false;
+
+  try {
+    return localStorage.getItem(ROADMAP_MIGRATION_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function completeStoredRoadmapMigration(): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    localStorage.setItem(ROADMAP_MIGRATION_KEY, "true");
+    localStorage.removeItem(ROADMAP_KEY);
+  } catch {
+    console.warn("Failed to finalize the local Roadmap migration.");
   }
 }
 
