@@ -16,6 +16,8 @@ const SESSIONS_MIGRATION_KEY = "ds-prep-tracker:sessions:supabase-migrated";
 const ROADMAP_KEY = "ds-prep-tracker:roadmap";
 const ROADMAP_MIGRATION_KEY = "ds-prep-tracker:roadmap:supabase-migrated";
 const PORTFOLIO_KEY = "ds-prep-tracker:portfolio";
+const PORTFOLIO_MIGRATION_KEY =
+  "ds-prep-tracker:portfolio:supabase-migrated";
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -149,5 +151,26 @@ export function saveStoredProjects(projects: Project[]): void {
     localStorage.setItem(PORTFOLIO_KEY, JSON.stringify(projects));
   } catch {
     console.warn("Failed to save portfolio to localStorage.");
+  }
+}
+
+export function isStoredPortfolioMigrationComplete(): boolean {
+  if (typeof window === "undefined") return false;
+
+  try {
+    return localStorage.getItem(PORTFOLIO_MIGRATION_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function completeStoredPortfolioMigration(): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    localStorage.setItem(PORTFOLIO_MIGRATION_KEY, "true");
+    localStorage.removeItem(PORTFOLIO_KEY);
+  } catch {
+    console.warn("Failed to finalize the local Portfolio migration.");
   }
 }
