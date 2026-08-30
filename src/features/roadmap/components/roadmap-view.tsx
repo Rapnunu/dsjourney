@@ -22,7 +22,12 @@ const masteryOrder: MasteryLevel[] = [
 type MasteryFilter = "all" | MasteryLevel;
 
 export function RoadmapView() {
-  const { roadmap: categories, isHydrated, updateMastery } = useRoadmapStore();
+  const {
+    roadmap: categories,
+    isHydrated,
+    error,
+    updateMastery,
+  } = useRoadmapStore();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
     () => new Set([mockRoadmapData[0]?.id])
   );
@@ -123,6 +128,14 @@ export function RoadmapView() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div
+          role="alert"
+          className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+        >
+          {error}
+        </div>
+      )}
       {/* Summary stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {masteryOrder.map((level) => {

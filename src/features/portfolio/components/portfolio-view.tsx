@@ -20,6 +20,7 @@ export function PortfolioView() {
   const {
     projects,
     isHydrated,
+    error,
     addProject,
     updateProject,
     deleteProject,
@@ -49,19 +50,20 @@ export function PortfolioView() {
     setIsFormOpen(false);
   }
 
-  function handleSubmit(project: ProjectInput) {
+  async function handleSubmit(project: ProjectInput) {
+    let saved: boolean;
     if (editingProject) {
-      updateProject(editingProject.id, project);
+      saved = await updateProject(editingProject.id, project);
     } else {
-      addProject(project);
+      saved = await addProject(project);
     }
-    closeForm();
+    if (saved) closeForm();
   }
 
-  function handleDelete(project: Project) {
+  async function handleDelete(project: Project) {
     if (window.confirm(`Delete "${project.title}"?`)) {
-      deleteProject(project.id);
-      if (editingProject?.id === project.id) closeForm();
+      const deleted = await deleteProject(project.id);
+      if (deleted && editingProject?.id === project.id) closeForm();
     }
   }
 
@@ -81,6 +83,14 @@ export function PortfolioView() {
         </div>
       ) : (
       <div className="space-y-6">
+        {error && (
+          <div
+            role="alert"
+            className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+          >
+            {error}
+          </div>
+        )}
         {/* Overview KPI cards */}
         <PortfolioOverview stats={stats} />
 
