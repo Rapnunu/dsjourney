@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getTestAccountCredentials, isDemoLoginEnvironment } from "@/lib/auth/demo-login";
 import { auth } from "@/lib/auth/server";
 
 export async function signInAction(
@@ -41,4 +42,27 @@ export async function signUpAction(
 export async function signOutAction() {
   await auth.signOut();
   redirect("/auth");
+}
+
+export async function demoLoginAction(): Promise<{ error: string } | undefined> {
+  if (!isDemoLoginEnvironment()) {
+    return { error: "Demo login is not available." };
+  }
+
+  const credentials = getTestAccountCredentials();
+
+  if (!credentials) {
+    return { error: "Test account is not configured." };
+  }
+
+  const { error } = await auth.signIn.email({
+    email: credentials.email,
+    password: credentials.password,
+  });
+
+  if (error) {
+    return { error: error.message || "Demo sign-in failed. Try again." };
+  }
+
+  redirect("/today");
 }

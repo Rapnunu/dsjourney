@@ -1,4 +1,8 @@
 import { redirect } from "next/navigation";
+import {
+  isDemoLoginConfigured,
+  isDemoLoginEnvironment,
+} from "@/lib/auth/demo-login";
 import { auth } from "@/lib/auth/server";
 import { AuthForm } from "./auth-form";
 
@@ -29,6 +33,8 @@ export default async function AuthPage({ searchParams }: AuthPageProps) {
         <AuthForm
           initialError={params.error}
           initialMessage={params.message}
+          showDemoSection={isDemoLoginEnvironment()}
+          demoLoginAvailable={isDemoLoginConfigured()}
         />
       </div>
     </main>

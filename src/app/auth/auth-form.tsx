@@ -3,16 +3,23 @@
 import { useState, type FormEvent } from "react";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { ArrowRight, LoaderCircle } from "lucide-react";
-import { signInAction, signUpAction } from "./actions";
+import { demoLoginAction, signInAction, signUpAction } from "./actions";
 
 type AuthMode = "sign_in" | "sign_up";
 
 interface AuthFormProps {
   initialError?: string;
   initialMessage?: string;
+  showDemoSection?: boolean;
+  demoLoginAvailable?: boolean;
 }
 
-export function AuthForm({ initialError, initialMessage }: AuthFormProps) {
+export function AuthForm({
+  initialError,
+  initialMessage,
+  showDemoSection = false,
+  demoLoginAvailable = false,
+}: AuthFormProps) {
   const [mode, setMode] = useState<AuthMode>("sign_in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,6 +27,7 @@ export function AuthForm({ initialError, initialMessage }: AuthFormProps) {
   const [error, setError] = useState(initialError ?? "");
   const [message, setMessage] = useState(initialMessage ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
 
   function changeMode(nextMode: AuthMode) {
     setMode(nextMode);
@@ -70,6 +78,36 @@ export function AuthForm({ initialError, initialMessage }: AuthFormProps) {
     }
   }
 
+  async function handleDemoLogin() {
+    if (!demoLoginAvailable || isDemoSubmitting || isSubmitting) {
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setIsDemoSubmitting(true);
+
+    try {
+      const result = await demoLoginAction();
+
+      if (result?.error) {
+        setError(result.error);
+      }
+    } catch (submitError) {
+      if (isRedirectError(submitError)) {
+        throw submitError;
+      }
+
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Demo sign-in failed. Try again.",
+      );
+    } finally {
+      setIsDemoSubmitting(false);
+    }
+  }
+
   const inputClasses =
     "w-full rounded-lg border border-border-primary bg-bg-primary px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors";
 
@@ -117,11 +155,53 @@ export function AuthForm({ initialError, initialMessage }: AuthFormProps) {
         {error && <p role="alert" className="rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-300">{error}</p>}
         {message && <p role="status" className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">{message}</p>}
 
-        <button type="submit" disabled={isSubmitting} className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-hover focus-ring disabled:cursor-not-allowed disabled:opacity-60">
+        <button type="submit" disabled={isSubmitting || isDemoSubmitting} className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-hover focus-ring disabled:cursor-not-allowed disabled:opacity-60">
           {isSubmitting ? <LoaderCircle size={16} className="animate-spin" /> : <ArrowRight size={16} />}
           {isSubmitting ? "Please wait..." : mode === "sign_in" ? "Sign In" : "Create Account"}
         </button>
       </form>
+
+      {showDemoSection && mode === "sign_in" && (
+        <div className="mt-5">
+          <div className="relative mb-4">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-border-primary" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-bg-surface/80 px-2 text-[11px] font-medium uppercase tracking-wider text-text-muted">
+                Test Account
+              </span>
+            </div>
+          </div>
+
+          {demoLoginAvailable ? (
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={isDemoSubmitting || isSubmitting}
+              className="w-full rounded-lg border border-border-primary bg-bg-primary px-4 py-3 text-left transition-colors hover:border-accent/40 hover:bg-bg-surface-hover focus-ring disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-text-primary">Demo User</p>
+                  <p className="mt-0.5 text-xs text-text-muted">Auto sign in for QA</p>
+                </div>
+                {isDemoSubmitting && (
+                  <LoaderCircle size={16} className="shrink-0 animate-spin text-text-muted" />
+                )}
+              </div>
+            </button>
+          ) : (
+            <p className="rounded-lg border border-border-primary bg-bg-primary px-4 py-3 text-center text-sm text-text-muted">
+              Test account unavailable
+            </p>
+          )}
+
+          <p className="mt-3 text-center text-[11px] text-text-muted">
+            Preview testing only
+          </p>
+        </div>
+      )}
     </div>
   );
 }
