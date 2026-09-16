@@ -16,15 +16,17 @@ import {
   getInternshipChecklist,
 } from "../data";
 import { useRoadmapStore } from "@/features/roadmap/roadmap-provider";
+import { usePortfolioStore } from "@/features/portfolio/portfolio-provider";
 
 export function ReadinessView() {
   const { roadmap, isHydrated } = useRoadmapStore();
-  const overallReadiness = getOverallReadiness(roadmap);
+  const { projects } = usePortfolioStore();
+  const overallReadiness = getOverallReadiness(roadmap, projects);
   const summary = getReadinessSummary(overallReadiness);
-  const categories = getCategoryReadiness(roadmap);
-  const gaps = getTopSkillGaps(roadmap, 3);
-  const focusTopics = getRecommendedFocusTopics(roadmap);
-  const checklistItems = getInternshipChecklist(roadmap);
+  const categories = getCategoryReadiness(roadmap, projects);
+  const gaps = getTopSkillGaps(roadmap, projects, 3);
+  const focusTopics = getRecommendedFocusTopics(roadmap, projects);
+  const checklistItems = getInternshipChecklist(roadmap, projects);
 
   if (!isHydrated) {
     return (

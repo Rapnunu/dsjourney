@@ -1,3 +1,9 @@
+import {
+  addDaysLocal,
+  computeStudyStreak,
+  getLocalDateString,
+  getMondayOfWeekLocal,
+} from "@/lib/date-only";
 import { MASTERY_WEIGHTS } from "../roadmap/types";
 import type { MasteryLevel, RoadmapCategory } from "../roadmap/types";
 import type { StudySession } from "../sessions/types";
@@ -31,7 +37,6 @@ export interface TodayGoal {
   completed: boolean;
 }
 
-// Compute overall readiness from roadmap data
 export function computeReadiness(roadmap: RoadmapCategory[]): number {
   const allTopics = roadmap.flatMap((c) => c.topics);
   if (allTopics.length === 0) return 0;
@@ -39,47 +44,25 @@ export function computeReadiness(roadmap: RoadmapCategory[]): number {
   return Math.round((sum / allTopics.length) * 100);
 }
 
-// Compute study streak (consecutive days with sessions ending at today or yesterday)
 export function computeStreak(sessions: StudySession[]): number {
-  const today = new Date("2026-07-22"); // Mock "today"
   const sessionDates = new Set(sessions.map((s) => s.date));
-  let streak = 0;
-  const checkDate = new Date(today);
-
-  // If no session today, start checking from yesterday
-  const todayStr = checkDate.toISOString().split("T")[0];
-  if (!sessionDates.has(todayStr)) {
-    checkDate.setDate(checkDate.getDate() - 1);
-  }
-
-  while (true) {
-    const dateStr = checkDate.toISOString().split("T")[0];
-    if (sessionDates.has(dateStr)) {
-      streak++;
-      checkDate.setDate(checkDate.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-  return streak;
+  return computeStudyStreak(sessionDates);
 }
 
-// Hours studied in the last 7 days
 export function computeWeeklyHours(sessions: StudySession[]): number {
-  const today = new Date("2026-07-22");
-  const weekAgo = new Date(today);
-  weekAgo.setDate(weekAgo.getDate() - 7);
-  const weekAgoStr = weekAgo.toISOString().split("T")[0];
+  const monday = getMondayOfWeekLocal();
+  const sunday = addDaysLocal(monday, 6);
+  const mondayStr = getLocalDateString(monday);
+  const sundayStr = getLocalDateString(sunday);
 
   return parseFloat(
     sessions
-      .filter((s) => s.date >= weekAgoStr)
+      .filter((s) => s.date >= mondayStr && s.date <= sundayStr)
       .reduce((sum, s) => sum + s.hoursStudied, 0)
-      .toFixed(1)
+      .toFixed(1),
   );
 }
 
-// Get dashboard stats
 export function getDashboardStats(
   sessions: StudySession[],
   roadmap: RoadmapCategory[],
@@ -92,8 +75,6 @@ export function getDashboardStats(
   };
 }
 
-// Get recommended next topic: pick from the lowest-readiness category,
-// choosing the first non-mastered topic
 export function getRecommendedTopic(
   roadmap: RoadmapCategory[],
 ): RecommendedTopic | null {
@@ -106,11 +87,9 @@ export function getRecommendedTopic(
     return { category: cat, readiness: avg };
   });
 
-  // Sort by readiness ascending
   categoryReadiness.sort((a, b) => a.readiness - b.readiness);
 
   for (const { category } of categoryReadiness) {
-    // Find first topic that isn't mastered, preferring not_started > learning > practiced
     const priorityOrder: MasteryLevel[] = ["not_started", "learning", "practiced"];
     for (const level of priorityOrder) {
       const topic = category.topics.find((t) => t.mastery === level);
@@ -134,12 +113,9 @@ export function getRecommendedTopic(
   return null;
 }
 
-// Get topics due for review: mastery is learning/practiced but lastStudied > 5 days ago
 export function getReviewTopics(roadmap: RoadmapCategory[]): ReviewTopic[] {
-  const today = new Date("2026-07-22");
-  const cutoff = new Date(today);
-  cutoff.setDate(cutoff.getDate() - 5);
-  const cutoffStr = cutoff.toISOString().split("T")[0];
+  const cutoff = addDaysLocal(new Date(), -5);
+  const cutoffStr = getLocalDateString(cutoff);
 
   const results: ReviewTopic[] = [];
 
@@ -161,12 +137,10 @@ export function getReviewTopics(roadmap: RoadmapCategory[]): ReviewTopic[] {
     }
   }
 
-  // Sort by lastStudied ascending (oldest first)
   results.sort((a, b) => a.lastStudied.localeCompare(b.lastStudied));
   return results.slice(0, 5);
 }
 
-// Mock today's goals
 export const mockGoals: TodayGoal[] = [
   { id: "g-1", label: "Study for 2 hours", completed: true },
   { id: "g-2", label: "Complete 1 roadmap topic", completed: false },

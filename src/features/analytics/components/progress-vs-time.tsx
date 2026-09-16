@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
 import type { ProgressComparison } from "../data";
 
 interface ProgressVsTimeProps {

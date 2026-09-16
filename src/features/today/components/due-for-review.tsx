@@ -1,18 +1,12 @@
 "use client";
 
 import { Calendar } from "lucide-react";
+import { daysBetweenLocal } from "@/lib/date-only";
 import type { ReviewTopic } from "../data";
 import { MASTERY_CONFIG } from "../../roadmap/types";
 
 interface DueForReviewProps {
   topics: ReviewTopic[];
-}
-
-function daysAgo(dateStr: string): number {
-  const today = new Date("2026-07-22T00:00:00");
-  const date = new Date(dateStr + "T00:00:00");
-  const diff = today.getTime() - date.getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
 
 export function DueForReview({ topics }: DueForReviewProps) {
@@ -30,7 +24,7 @@ export function DueForReview({ topics }: DueForReviewProps) {
       {topics.length > 0 ? (
         <div className="space-y-0">
           {topics.map((topic, idx) => {
-            const days = daysAgo(topic.lastStudied);
+            const days = daysBetweenLocal(topic.lastStudied);
             const masteryConfig = MASTERY_CONFIG[topic.mastery];
             return (
               <div

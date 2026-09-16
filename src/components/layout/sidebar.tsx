@@ -105,7 +105,7 @@ function NavLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
 }
 
 export function Sidebar() {
-  const { isCollapsed, isMobileOpen, toggleCollapsed, setMobileOpen } = useSidebar();
+  const { isCollapsed, isMobileOpen, setMobileOpen } = useSidebar();
 
   const sidebarContent = (
     <div className="flex h-full flex-col">

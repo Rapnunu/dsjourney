@@ -16,6 +16,7 @@ import {
   getProgressComparison,
 } from "../data";
 import { useSessionStore } from "@/features/sessions/session-provider";
+import { useRoadmapStore } from "@/features/roadmap/roadmap-provider";
 
 // ── Skeleton placeholders ──────────────────────────────────────────
 
@@ -105,13 +106,16 @@ function AnalyticsSkeleton() {
 
 export function AnalyticsView() {
   const { sessions, isHydrated } = useSessionStore();
+  const { roadmap } = useRoadmapStore();
 
-  // Memoize analytics calculations — recalculate only when sessions change
   const kpiStats = useMemo(() => getKpiStats(sessions), [sessions]);
   const categoryHours = useMemo(() => getCategoryHours(sessions), [sessions]);
   const weeklyActivity = useMemo(() => getWeeklyActivity(sessions), [sessions]);
   const difficultTopics = useMemo(() => getDifficultTopics(sessions), [sessions]);
-  const progressData = useMemo(() => getProgressComparison(sessions), [sessions]);
+  const progressData = useMemo(
+    () => getProgressComparison(sessions, roadmap),
+    [sessions, roadmap],
+  );
 
   return (
     <div>

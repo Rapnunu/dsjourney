@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Save } from "lucide-react";
+import { getLocalDateString } from "@/lib/date-only";
 import type { StudySession, TopicOption } from "../types";
 import { DifficultyRating } from "./difficulty-rating";
 
@@ -12,12 +13,6 @@ interface SessionFormProps {
   editingSession?: StudySession | null;
 }
 
-function getTodayStr(): string {
-  const d = new Date();
-  return d.toISOString().split("T")[0];
-}
-
-// Group topics by category
 function groupByCategory(options: TopicOption[]): Record<string, TopicOption[]> {
   const groups: Record<string, TopicOption[]> = {};
   options.forEach((opt) => {
@@ -27,31 +22,31 @@ function groupByCategory(options: TopicOption[]): Record<string, TopicOption[]> 
   return groups;
 }
 
-export function SessionForm({ topicOptions, onSubmit, onCancel, editingSession }: SessionFormProps) {
-  const [topicId, setTopicId] = useState("");
-  const [date, setDate] = useState(getTodayStr());
-  const [hoursStudied, setHoursStudied] = useState(1);
-  const [difficultyRating, setDifficultyRating] = useState<1 | 2 | 3 | 4 | 5>(3);
-  const [notes, setNotes] = useState("");
+interface SessionFormFieldsProps {
+  topicOptions: TopicOption[];
+  onSubmit: (session: Omit<StudySession, "id" | "createdAt">) => void;
+  onCancel?: () => void;
+  editingSession: StudySession | null;
+}
 
-  const isEditing = !!editingSession;
-
-  // Populate form when editing
-  useEffect(() => {
-    if (editingSession) {
-      setTopicId(editingSession.topicId);
-      setDate(editingSession.date);
-      setHoursStudied(editingSession.hoursStudied);
-      setDifficultyRating(editingSession.difficultyRating);
-      setNotes(editingSession.notes);
-    } else {
-      resetForm();
-    }
-  }, [editingSession]);
+function SessionFormFields({
+  topicOptions,
+  onSubmit,
+  onCancel,
+  editingSession,
+}: SessionFormFieldsProps) {
+  const isEditing = editingSession !== null;
+  const [topicId, setTopicId] = useState(editingSession?.topicId ?? "");
+  const [date, setDate] = useState(editingSession?.date ?? getLocalDateString());
+  const [hoursStudied, setHoursStudied] = useState(editingSession?.hoursStudied ?? 1);
+  const [difficultyRating, setDifficultyRating] = useState<1 | 2 | 3 | 4 | 5>(
+    editingSession?.difficultyRating ?? 3,
+  );
+  const [notes, setNotes] = useState(editingSession?.notes ?? "");
 
   function resetForm() {
     setTopicId("");
-    setDate(getTodayStr());
+    setDate(getLocalDateString());
     setHoursStudied(1);
     setDifficultyRating(3);
     setNotes("");
@@ -92,7 +87,6 @@ export function SessionForm({ topicOptions, onSubmit, onCancel, editingSession }
       </h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Topic */}
         <div>
           <label htmlFor="session-topic" className={labelClasses}>Topic</label>
           <select
@@ -113,7 +107,6 @@ export function SessionForm({ topicOptions, onSubmit, onCancel, editingSession }
           </select>
         </div>
 
-        {/* Date */}
         <div>
           <label htmlFor="session-date" className={labelClasses}>Study Date</label>
           <input
@@ -126,7 +119,6 @@ export function SessionForm({ topicOptions, onSubmit, onCancel, editingSession }
           />
         </div>
 
-        {/* Hours */}
         <div>
           <label htmlFor="session-hours" className={labelClasses}>Hours Studied</label>
           <input
@@ -142,7 +134,6 @@ export function SessionForm({ topicOptions, onSubmit, onCancel, editingSession }
           />
         </div>
 
-        {/* Difficulty */}
         <div>
           <label className={labelClasses}>How difficult was it?</label>
           <div className="pt-1">
@@ -154,7 +145,6 @@ export function SessionForm({ topicOptions, onSubmit, onCancel, editingSession }
           </div>
         </div>
 
-        {/* Notes — full width */}
         <div className="sm:col-span-2">
           <label htmlFor="session-notes" className={labelClasses}>Notes (optional)</label>
           <textarea
@@ -168,7 +158,6 @@ export function SessionForm({ topicOptions, onSubmit, onCancel, editingSession }
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex items-center gap-3 mt-4">
         <button
           type="submit"
@@ -192,5 +181,24 @@ export function SessionForm({ topicOptions, onSubmit, onCancel, editingSession }
         )}
       </div>
     </form>
+  );
+}
+
+export function SessionForm({
+  topicOptions,
+  onSubmit,
+  onCancel,
+  editingSession,
+}: SessionFormProps) {
+  const formKey = editingSession?.id ?? "create";
+
+  return (
+    <SessionFormFields
+      key={formKey}
+      topicOptions={topicOptions}
+      onSubmit={onSubmit}
+      onCancel={onCancel}
+      editingSession={editingSession ?? null}
+    />
   );
 }

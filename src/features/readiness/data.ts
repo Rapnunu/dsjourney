@@ -1,15 +1,14 @@
 import { MASTERY_WEIGHTS, MASTERY_REMAINING_FACTOR } from "../roadmap/types";
 import type { MasteryLevel, RoadmapCategory } from "../roadmap/types";
-
-// ── Types ──────────────────────────────────────────────────────────────
+import type { Project } from "../portfolio/data/projects";
 
 export interface CategoryReadiness {
   id: string;
   name: string;
-  readiness: number; // 0–100
+  readiness: number;
   topicCount: number;
   masteredCount: number;
-  color: string; // Tailwind color class stem (e.g. "indigo")
+  color: string;
 }
 
 export interface SkillGap {
@@ -24,7 +23,7 @@ export interface RecommendedFocus {
   topic: string;
   category: string;
   estimatedHours: number;
-  readinessGain: number; // percentage-point increase if mastered
+  readinessGain: number;
 }
 
 export interface ChecklistItem {
@@ -32,8 +31,6 @@ export interface ChecklistItem {
   label: string;
   completed: boolean;
 }
-
-// ── Category color mapping ─────────────────────────────────────────────
 
 const CATEGORY_COLORS: Record<string, string> = {
   python: "indigo",
@@ -44,20 +41,27 @@ const CATEGORY_COLORS: Record<string, string> = {
   projects: "amber",
 };
 
-// ── Projects mock data (not in roadmap) ────────────────────────────────
+const COMPLETED_PROJECT_THRESHOLD = 2;
 
-const PROJECTS_READINESS = {
-  id: "projects",
-  name: "Projects",
-  readiness: 25,
-  topicCount: 4,
-  masteredCount: 1,
-};
+function getProjectsReadiness(projects: Project[]) {
+  const completedCount = projects.filter((p) => p.status === "completed").length;
+  const readiness =
+    projects.length > 0
+      ? Math.round((completedCount / projects.length) * 100)
+      : 0;
 
-// ── Computation ────────────────────────────────────────────────────────
+  return {
+    id: "projects",
+    name: "Projects",
+    readiness,
+    topicCount: projects.length,
+    masteredCount: completedCount,
+  };
+}
 
 export function getCategoryReadiness(
   roadmap: RoadmapCategory[],
+  projects: Project[] = [],
 ): CategoryReadiness[] {
   const categories: CategoryReadiness[] = roadmap.map((cat) => {
     const readiness =
@@ -65,7 +69,7 @@ export function getCategoryReadiness(
         ? Math.round(
             (cat.topics.reduce((sum, t) => sum + MASTERY_WEIGHTS[t.mastery], 0) /
               cat.topics.length) *
-              100
+              100,
           )
         : 0;
     const masteredCount = cat.topics.filter((t) => t.mastery === "mastered").length;
@@ -80,20 +84,22 @@ export function getCategoryReadiness(
     };
   });
 
-  // Append mock Projects category
   categories.push({
-    ...PROJECTS_READINESS,
+    ...getProjectsReadiness(projects),
     color: CATEGORY_COLORS.projects,
   });
 
   return categories;
 }
 
-export function getOverallReadiness(roadmap: RoadmapCategory[]): number {
-  const categories = getCategoryReadiness(roadmap);
+export function getOverallReadiness(
+  roadmap: RoadmapCategory[],
+  projects: Project[] = [],
+): number {
+  const categories = getCategoryReadiness(roadmap, projects);
   if (categories.length === 0) return 0;
   return Math.round(
-    categories.reduce((sum, c) => sum + c.readiness, 0) / categories.length
+    categories.reduce((sum, c) => sum + c.readiness, 0) / categories.length,
   );
 }
 
@@ -107,13 +113,13 @@ export function getReadinessSummary(readiness: number): string {
 
 export function getTopSkillGaps(
   roadmap: RoadmapCategory[],
+  projects: Project[] = [],
   count = 3,
 ): SkillGap[] {
-  const categories = getCategoryReadiness(roadmap);
+  const categories = getCategoryReadiness(roadmap, projects);
   const sorted = [...categories].sort((a, b) => a.readiness - b.readiness);
 
   return sorted.slice(0, count).map((cat) => {
-    // Compute hours remaining for non-project categories
     const roadmapCat = roadmap.find((c) => c.id === cat.id);
     let hoursRemaining = 0;
     let topicsRemaining = 0;
@@ -126,9 +132,8 @@ export function getTopSkillGaps(
         }
       }
     } else {
-      // Projects (mock)
       topicsRemaining = cat.topicCount - cat.masteredCount;
-      hoursRemaining = topicsRemaining * 8; // ~8 hours per project
+      hoursRemaining = topicsRemaining * 8;
     }
 
     return {
@@ -143,43 +148,46 @@ export function getTopSkillGaps(
 
 export function getRecommendedFocusTopics(
   roadmap: RoadmapCategory[],
+  projects: Project[] = [],
 ): RecommendedFocus[] {
-  const totalCategories = roadmap.length + 1; // +1 for projects
-
+  const totalCategories = roadmap.length + 1;
   const results: RecommendedFocus[] = [];
-
-  // Sort categories by readiness ascending
-  const catReadiness = getCategoryReadiness(roadmap);
+  const catReadiness = getCategoryReadiness(roadmap, projects);
   const sorted = [...catReadiness].sort((a, b) => a.readiness - b.readiness);
 
   for (const cat of sorted) {
     if (results.length >= 4) break;
     const roadmapCat = roadmap.find((c) => c.id === cat.id);
+
     if (!roadmapCat) {
-      // Projects mock
-      if (cat.readiness < 100) {
+      const nextProject = projects.find((p) => p.status !== "completed");
+      if (nextProject && cat.readiness < 100) {
         results.push({
-          topic: "Build an EDA Portfolio Project",
+          topic: nextProject.title,
           category: "Projects",
           estimatedHours: 10,
-          readinessGain: Math.round((1 / PROJECTS_READINESS.topicCount / totalCategories) * 100),
+          readinessGain: Math.max(
+            1,
+            Math.round((1 / Math.max(cat.topicCount, 1) / totalCategories) * 100),
+          ),
         });
       }
       continue;
     }
 
-    // Find the first non-mastered topic, prefer not_started > learning > practiced
     const priorityOrder: MasteryLevel[] = ["not_started", "learning", "practiced"];
     for (const level of priorityOrder) {
       const topic = roadmapCat.topics.find((t) => t.mastery === level);
       if (topic) {
-        // Gain = going from current weight to 1.0, divided across total categories
         const currentWeight = MASTERY_WEIGHTS[topic.mastery];
-        const gain = ((1 - currentWeight) / roadmapCat.topics.length / totalCategories) * 100;
+        const gain =
+          ((1 - currentWeight) / roadmapCat.topics.length / totalCategories) * 100;
         results.push({
           topic: topic.name,
           category: cat.name,
-          estimatedHours: Math.round(topic.estimatedHours * MASTERY_REMAINING_FACTOR[topic.mastery]),
+          estimatedHours: Math.round(
+            topic.estimatedHours * MASTERY_REMAINING_FACTOR[topic.mastery],
+          ),
           readinessGain: Math.max(1, Math.round(gain)),
         });
         break;
@@ -190,18 +198,18 @@ export function getRecommendedFocusTopics(
   return results;
 }
 
-// ── Internship Checklist ───────────────────────────────────────────────
-
 export function getInternshipChecklist(
   roadmap: RoadmapCategory[],
+  projects: Project[] = [],
 ): ChecklistItem[] {
-  const catReadiness = getCategoryReadiness(roadmap);
-  const overall = getOverallReadiness(roadmap);
+  const catReadiness = getCategoryReadiness(roadmap, projects);
+  const overall = getOverallReadiness(roadmap, projects);
   const pythonR = catReadiness.find((c) => c.id === "python")?.readiness ?? 0;
   const sqlR = catReadiness.find((c) => c.id === "sql")?.readiness ?? 0;
   const statsR = catReadiness.find((c) => c.id === "statistics")?.readiness ?? 0;
   const mlR = catReadiness.find((c) => c.id === "ml")?.readiness ?? 0;
   const gitR = catReadiness.find((c) => c.id === "git")?.readiness ?? 0;
+  const completedProjects = projects.filter((p) => p.status === "completed").length;
 
   return [
     {
@@ -232,7 +240,7 @@ export function getInternshipChecklist(
     {
       id: "cl-6",
       label: "Build at least 2 portfolio projects",
-      completed: false,
+      completed: completedProjects >= COMPLETED_PROJECT_THRESHOLD,
     },
     {
       id: "cl-7",

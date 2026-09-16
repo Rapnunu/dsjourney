@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getLocalDateString } from "@/lib/date-only";
 import type { DailyActivity } from "../data";
 
 interface WeeklyActivityProps {
@@ -9,6 +10,7 @@ interface WeeklyActivityProps {
 
 export function WeeklyActivity({ days }: WeeklyActivityProps) {
   const [animate, setAnimate] = useState(false);
+  const todayDate = getLocalDateString();
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setAnimate(true));
@@ -16,10 +18,6 @@ export function WeeklyActivity({ days }: WeeklyActivityProps) {
   }, []);
 
   const maxHours = Math.max(...days.map((d) => d.hours), 1);
-
-  // Mock "today" = 2026-07-22, which is a Tuesday (index 2 in our Mon-based array)
-  // Actually the session data shows 2026-07-20 = Monday, 2026-07-21 = Tuesday, 2026-07-22 = Wednesday
-  const todayDate = "2026-07-22";
 
   return (
     <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5">
@@ -30,7 +28,6 @@ export function WeeklyActivity({ days }: WeeklyActivityProps) {
         <span className="text-xs text-text-muted">This week</span>
       </div>
 
-      {/* Bar chart */}
       <div className="flex items-end gap-2 h-40">
         {days.map((day) => {
           const heightPct = maxHours > 0 ? (day.hours / maxHours) * 100 : 0;
@@ -39,7 +36,6 @@ export function WeeklyActivity({ days }: WeeklyActivityProps) {
 
           return (
             <div key={day.day} className="flex-1 flex flex-col items-center gap-2">
-              {/* Hours label */}
               <span
                 className={`text-xs tabular-nums font-medium transition-opacity duration-500 ${
                   animate && hasActivity ? "opacity-100" : "opacity-0"
@@ -48,7 +44,6 @@ export function WeeklyActivity({ days }: WeeklyActivityProps) {
                 {day.hours > 0 ? `${day.hours}h` : ""}
               </span>
 
-              {/* Bar container */}
               <div className="w-full flex-1 flex items-end">
                 <div
                   className={`w-full rounded-t-md transition-all duration-700 ease-out ${
@@ -68,7 +63,6 @@ export function WeeklyActivity({ days }: WeeklyActivityProps) {
                 />
               </div>
 
-              {/* Day label */}
               <span
                 className={`text-xs font-medium ${
                   isToday ? "text-accent" : "text-text-muted"
@@ -81,7 +75,6 @@ export function WeeklyActivity({ days }: WeeklyActivityProps) {
         })}
       </div>
 
-      {/* Summary */}
       <div className="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between">
         <span className="text-xs text-text-muted">
           {days.filter((d) => d.hours > 0).length} active days

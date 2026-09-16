@@ -4,10 +4,38 @@ import {
   createContext,
   useContext,
   useState,
-  useEffect,
   useCallback,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
+
+const SIDEBAR_STORAGE_KEY = "sidebar-collapsed";
+const SIDEBAR_CHANGE_EVENT = "sidebar-collapsed-change";
+
+function getSidebarSnapshot(): boolean {
+  try {
+    return localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function getServerSidebarSnapshot(): boolean {
+  return false;
+}
+
+function subscribeToSidebarPreference(onStoreChange: () => void) {
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === SIDEBAR_STORAGE_KEY) onStoreChange();
+  };
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener(SIDEBAR_CHANGE_EVENT, onStoreChange);
+
+  return () => {
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener(SIDEBAR_CHANGE_EVENT, onStoreChange);
+  };
+}
 
 interface SidebarContextType {
   isCollapsed: boolean;
@@ -19,43 +47,31 @@ interface SidebarContextType {
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const isCollapsed = useSyncExternalStore(
+    subscribeToSidebarPreference,
+    getSidebarSnapshot,
+    getServerSidebarSnapshot,
+  );
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
-
-  // Restore collapsed preference from localStorage after mount
-  useEffect(() => {
-    const stored = localStorage.getItem("sidebar-collapsed");
-    if (stored !== null) {
-      setIsCollapsed(JSON.parse(stored));
-    }
-    setHasMounted(true);
-  }, []);
 
   const toggleCollapsed = useCallback(() => {
-    setIsCollapsed((prev) => {
-      const next = !prev;
-      localStorage.setItem("sidebar-collapsed", JSON.stringify(next));
-      return next;
-    });
+    try {
+      localStorage.setItem(
+        SIDEBAR_STORAGE_KEY,
+        JSON.stringify(!getSidebarSnapshot()),
+      );
+      window.dispatchEvent(new Event(SIDEBAR_CHANGE_EVENT));
+    } catch {
+      console.warn("Failed to save the sidebar preference.");
+    }
   }, []);
 
   const setMobileOpen = useCallback((open: boolean) => {
     setIsMobileOpen(open);
   }, []);
 
-  // Close mobile sidebar on escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsMobileOpen(false);
-    };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, []);
-
-  // Before mount, expose SSR-safe defaults so server/client HTML match
   const contextValue = {
-    isCollapsed: hasMounted ? isCollapsed : false,
+    isCollapsed,
     isMobileOpen,
     toggleCollapsed,
     setMobileOpen,

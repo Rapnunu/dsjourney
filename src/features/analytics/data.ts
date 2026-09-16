@@ -1,8 +1,11 @@
-import { mockRoadmapData } from "../roadmap/data";
+import {
+  computeStudyStreak,
+  getCurrentWeekDatesLocal,
+  getLocalDateString,
+} from "@/lib/date-only";
 import { MASTERY_WEIGHTS } from "../roadmap/types";
+import type { RoadmapCategory } from "../roadmap/types";
 import type { StudySession } from "../sessions/types";
-
-// ── Types ──────────────────────────────────────────────────────────────
 
 export interface KpiStats {
   totalHours: number;
@@ -19,8 +22,8 @@ export interface CategoryHours {
 }
 
 export interface DailyActivity {
-  day: string;       // "Mon", "Tue", …
-  date: string;      // ISO date
+  day: string;
+  date: string;
   hours: number;
 }
 
@@ -33,11 +36,9 @@ export interface DifficultTopic {
 export interface ProgressComparison {
   category: string;
   hoursStudied: number;
-  roadmapProgress: number; // 0–100
+  roadmapProgress: number;
   color: string;
 }
-
-// ── Color mapping ──────────────────────────────────────────────────────
 
 const CATEGORY_COLORS: Record<string, string> = {
   Python: "indigo",
@@ -47,33 +48,13 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Git & GitHub": "emerald",
 };
 
-// ── KPI stats ──────────────────────────────────────────────────────────
-
 export function getKpiStats(sessions: StudySession[]): KpiStats {
   const totalHours = parseFloat(
-    sessions.reduce((sum, s) => sum + s.hoursStudied, 0).toFixed(1)
+    sessions.reduce((sum, s) => sum + s.hoursStudied, 0).toFixed(1),
   );
   const totalSessions = sessions.length;
-
-  // Streak: consecutive days ending at mock "today" (2026-07-22) or yesterday
-  const today = new Date("2026-07-22");
   const sessionDates = new Set(sessions.map((s) => s.date));
-  let streak = 0;
-  let checkDate = new Date(today);
-  const todayStr = checkDate.toISOString().split("T")[0];
-  if (!sessionDates.has(todayStr)) {
-    checkDate.setDate(checkDate.getDate() - 1);
-  }
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const dateStr = checkDate.toISOString().split("T")[0];
-    if (sessionDates.has(dateStr)) {
-      streak++;
-      checkDate.setDate(checkDate.getDate() - 1);
-    } else {
-      break;
-    }
-  }
+  const streak = computeStudyStreak(sessionDates);
 
   const avgDifficulty =
     totalSessions > 0
@@ -81,14 +62,12 @@ export function getKpiStats(sessions: StudySession[]): KpiStats {
           (
             sessions.reduce((sum, s) => sum + s.difficultyRating, 0) /
             totalSessions
-          ).toFixed(1)
+          ).toFixed(1),
         )
       : 0;
 
   return { totalHours, totalSessions, currentStreak: streak, avgDifficulty };
 }
-
-// ── Study hours by category ────────────────────────────────────────────
 
 export function getCategoryHours(sessions: StudySession[]): CategoryHours[] {
   const hourMap = new Map<string, number>();
@@ -97,7 +76,6 @@ export function getCategoryHours(sessions: StudySession[]): CategoryHours[] {
   }
 
   const totalHours = [...hourMap.values()].reduce((a, b) => a + b, 0);
-
   const orderedCategories = ["Python", "SQL", "Statistics", "Machine Learning", "Git & GitHub"];
 
   return orderedCategories.map((cat) => {
@@ -111,31 +89,18 @@ export function getCategoryHours(sessions: StudySession[]): CategoryHours[] {
   });
 }
 
-// ── Weekly activity (Mon–Sun for the current week) ─────────────────────
-
 export function getWeeklyActivity(sessions: StudySession[]): DailyActivity[] {
-  // Mock "today" is 2026-07-22 (Wednesday). Build Mon–Sun for that week.
-  const monday = new Date("2026-07-20"); // Monday of the week
-  const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
   const sessionHoursByDate = new Map<string, number>();
   for (const s of sessions) {
     sessionHoursByDate.set(s.date, (sessionHoursByDate.get(s.date) ?? 0) + s.hoursStudied);
   }
 
-  return dayNames.map((day, i) => {
-    const d = new Date(monday);
-    d.setDate(d.getDate() + i);
-    const dateStr = d.toISOString().split("T")[0];
-    return {
-      day,
-      date: dateStr,
-      hours: parseFloat((sessionHoursByDate.get(dateStr) ?? 0).toFixed(1)),
-    };
-  });
+  return getCurrentWeekDatesLocal().map(({ day, date }) => ({
+    day,
+    date,
+    hours: parseFloat((sessionHoursByDate.get(date) ?? 0).toFixed(1)),
+  }));
 }
-
-// ── Difficult topics ───────────────────────────────────────────────────
 
 export function getDifficultTopics(sessions: StudySession[]): DifficultTopic[] {
   const topicMap = new Map<string, { categoryName: string; totalDiff: number; count: number }>();
@@ -164,21 +129,22 @@ export function getDifficultTopics(sessions: StudySession[]): DifficultTopic[] {
   return topics;
 }
 
-// ── Progress vs time comparison ────────────────────────────────────────
-
-export function getProgressComparison(sessions: StudySession[]): ProgressComparison[] {
+export function getProgressComparison(
+  sessions: StudySession[],
+  roadmap: RoadmapCategory[],
+): ProgressComparison[] {
   const hourMap = new Map<string, number>();
   for (const s of sessions) {
     hourMap.set(s.categoryName, (hourMap.get(s.categoryName) ?? 0) + s.hoursStudied);
   }
 
-  return mockRoadmapData.map((cat) => {
+  return roadmap.map((cat) => {
     const readiness =
       cat.topics.length > 0
         ? Math.round(
             (cat.topics.reduce((sum, t) => sum + MASTERY_WEIGHTS[t.mastery], 0) /
               cat.topics.length) *
-              100
+              100,
           )
         : 0;
 
@@ -191,3 +157,6 @@ export function getProgressComparison(sessions: StudySession[]): ProgressCompari
   });
 }
 
+export function getTodayDateString(): string {
+  return getLocalDateString();
+}

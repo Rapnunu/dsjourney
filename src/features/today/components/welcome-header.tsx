@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -18,16 +18,39 @@ function getFormattedDate(): string {
   });
 }
 
-export function WelcomeHeader() {
-  const [mounted, setMounted] = useState(false);
-  const [greeting, setGreeting] = useState("Welcome back");
-  const [dateStr, setDateStr] = useState("");
+function subscribeToClock(onStoreChange: () => void) {
+  const intervalId = window.setInterval(onStoreChange, 60_000);
+  return () => window.clearInterval(intervalId);
+}
 
-  useEffect(() => {
-    setGreeting(getGreeting());
-    setDateStr(getFormattedDate());
-    setMounted(true);
-  }, []);
+function getClientGreetingSnapshot(): string {
+  return getGreeting();
+}
+
+function getServerGreetingSnapshot(): string {
+  return "Welcome back";
+}
+
+function getClientDateSnapshot(): string {
+  return getFormattedDate();
+}
+
+function getServerDateSnapshot(): string {
+  return "";
+}
+
+export function WelcomeHeader() {
+  const greeting = useSyncExternalStore(
+    subscribeToClock,
+    getClientGreetingSnapshot,
+    getServerGreetingSnapshot,
+  );
+  const dateStr = useSyncExternalStore(
+    subscribeToClock,
+    getClientDateSnapshot,
+    getServerDateSnapshot,
+  );
+  const mounted = dateStr.length > 0;
 
   return (
     <div className="mb-8">
@@ -47,4 +70,3 @@ export function WelcomeHeader() {
     </div>
   );
 }
-
