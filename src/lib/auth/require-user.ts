@@ -19,7 +19,12 @@ export async function requireUser(): Promise<AuthenticatedUser> {
   const { data: session, error } = await auth.getSession();
 
   if (error) {
-    throw error;
+    const message =
+      typeof error.message === "string" && error.message.trim()
+        ? error.message
+        : "Authentication required.";
+
+    throw new UnauthorizedError(message);
   }
 
   if (!session?.user) {

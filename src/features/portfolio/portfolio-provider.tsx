@@ -14,12 +14,12 @@ import {
   isStoredPortfolioMigrationComplete,
 } from "@/lib/storage";
 import {
-  bulkImportPortfolioProjectsAction,
-  createPortfolioProjectAction,
-  deletePortfolioProjectAction,
-  listPortfolioProjectsAction,
-  updatePortfolioProjectAction,
-} from "./actions";
+  bulkImportPortfolioProjectsRequest,
+  createPortfolioProjectRequest,
+  deletePortfolioProjectRequest,
+  fetchPortfolioProjects,
+  updatePortfolioProjectRequest,
+} from "./api";
 import type { Project } from "./data/projects";
 
 export type ProjectInput = Omit<Project, "id">;
@@ -62,7 +62,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
     async function loadProjects() {
       try {
-        let loaded = await listPortfolioProjectsAction();
+        let loaded = await fetchPortfolioProjects();
 
         if (loaded.length > 0) {
           completeStoredPortfolioMigration();
@@ -70,7 +70,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
           const stored = getStoredProjects();
           if (stored !== null) {
             if (stored.length > 0) {
-              loaded = await bulkImportPortfolioProjectsAction(stored);
+              loaded = await bulkImportPortfolioProjectsRequest(stored);
             }
 
             completeStoredPortfolioMigration();
@@ -101,7 +101,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
   const addProject = useCallback(async (project: ProjectInput) => {
     try {
-      const created = await createPortfolioProjectAction(project);
+      const created = await createPortfolioProjectRequest(project);
       setProjects((previous) => sortProjects([created, ...previous]));
       setError(null);
       return true;
@@ -113,7 +113,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
   const updateProject = useCallback(async (id: string, project: ProjectInput) => {
     try {
-      const updated = await updatePortfolioProjectAction(id, project);
+      const updated = await updatePortfolioProjectRequest(id, project);
       setProjects((previous) =>
         sortProjects(
           previous.map((current) => (current.id === id ? updated : current)),
@@ -129,7 +129,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
   const deleteProject = useCallback(async (id: string) => {
     try {
-      await deletePortfolioProjectAction(id);
+      await deletePortfolioProjectRequest(id);
       setProjects((previous) =>
         previous.filter((project) => project.id !== id),
       );

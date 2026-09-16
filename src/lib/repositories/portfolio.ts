@@ -1,7 +1,7 @@
 import "server-only";
 
 import { and, desc, eq } from "drizzle-orm";
-import { db } from "@/lib/db/client";
+import { getDb } from "@/lib/db/client";
 import { portfolioProjects, type PortfolioProjectRow } from "@/lib/db/schema";
 import type { Project, ProjectStatus } from "@/features/portfolio/data/projects";
 
@@ -43,7 +43,7 @@ function sortProjects(projects: Project[]): Project[] {
 }
 
 export async function listPortfolioProjects(userId: string): Promise<Project[]> {
-  const rows = await db
+  const rows = await getDb()
     .select()
     .from(portfolioProjects)
     .where(eq(portfolioProjects.userId, userId))
@@ -62,7 +62,7 @@ export async function createPortfolioProject(
     id: options?.id ?? `proj-${Date.now()}`,
   };
 
-  const [row] = await db
+  const [row] = await getDb()
     .insert(portfolioProjects)
     .values(toInsertRow(project, userId))
     .returning();
@@ -79,7 +79,7 @@ export async function updatePortfolioProject(
   id: string,
   data: ProjectInput,
 ): Promise<Project> {
-  const [row] = await db
+  const [row] = await getDb()
     .update(portfolioProjects)
     .set({
       title: data.title,
@@ -106,7 +106,7 @@ export async function deletePortfolioProject(
   userId: string,
   id: string,
 ): Promise<void> {
-  const [row] = await db
+  const [row] = await getDb()
     .delete(portfolioProjects)
     .where(and(eq(portfolioProjects.userId, userId), eq(portfolioProjects.id, id)))
     .returning({ id: portfolioProjects.id });
@@ -124,7 +124,7 @@ export async function bulkImportPortfolioProjects(
     return [];
   }
 
-  const rows = await db
+  const rows = await getDb()
     .insert(portfolioProjects)
     .values(projects.map((project) => toInsertRow(project, userId)))
     .returning();

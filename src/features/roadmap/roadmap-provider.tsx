@@ -15,11 +15,11 @@ import {
 } from "@/lib/storage";
 import type { RoadmapProgressRecord } from "@/lib/repositories/roadmap";
 import {
-  bulkImportRoadmapProgressAction,
-  deleteRoadmapProgressOverrideAction,
-  listRoadmapProgressAction,
-  upsertRoadmapProgressAction,
-} from "./actions";
+  bulkImportRoadmapProgressRequest,
+  deleteRoadmapProgressOverrideRequest,
+  fetchRoadmapProgress,
+  upsertRoadmapProgressRequest,
+} from "./api";
 import { mockRoadmapData } from "./data";
 import type {
   MasteryLevel,
@@ -117,7 +117,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
 
     async function loadRoadmap() {
       try {
-        let records = await listRoadmapProgressAction();
+        let records = await fetchRoadmapProgress();
         let resolvedRoadmap = mergeProgress(records);
 
         if (records.length > 0) {
@@ -129,7 +129,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
               const legacyProgress = getLegacyProgress(stored);
 
               if (legacyProgress.length > 0) {
-                records = await bulkImportRoadmapProgressAction(legacyProgress);
+                records = await bulkImportRoadmapProgressRequest(legacyProgress);
                 resolvedRoadmap = mergeProgress(records);
               }
 
@@ -155,7 +155,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
         }
       } catch (loadError) {
         if (isActive) {
-          setRoadmap([]);
+          setRoadmap(mergeProgress([]));
           setError(getErrorMessage(loadError, "Unable to load roadmap progress."));
         }
       } finally {
@@ -184,9 +184,9 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
           topic.lastStudied === defaultTopic.lastStudied;
 
         if (matchesDefault) {
-          await deleteRoadmapProgressOverrideAction(topicId);
+          await deleteRoadmapProgressOverrideRequest(topicId);
         } else {
-          await upsertRoadmapProgressAction(
+          await upsertRoadmapProgressRequest(
             topicId,
             mastery,
             topic.lastStudied ?? null,

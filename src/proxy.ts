@@ -6,11 +6,22 @@ const neonAuthMiddleware = auth.middleware({
 });
 
 export async function proxy(request: NextRequest) {
+  if (request.headers.has("Next-Action")) {
+    return;
+  }
+
   return neonAuthMiddleware(request);
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    /*
+     * Protect application pages only.
+     * Exclude:
+     * - /api/* (Route Handlers authenticate via requireUser())
+     * - /auth (public sign-in page)
+     * - static assets
+     */
+    "/((?!api|auth|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

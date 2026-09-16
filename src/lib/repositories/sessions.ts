@@ -1,7 +1,7 @@
 import "server-only";
 
 import { and, desc, eq } from "drizzle-orm";
-import { db } from "@/lib/db/client";
+import { getDb } from "@/lib/db/client";
 import { studySessions, type StudySessionRow } from "@/lib/db/schema";
 import type { StudySession } from "@/features/sessions/types";
 
@@ -44,7 +44,7 @@ function sortSessions(sessions: StudySession[]): StudySession[] {
 }
 
 export async function listSessions(userId: string): Promise<StudySession[]> {
-  const rows = await db
+  const rows = await getDb()
     .select()
     .from(studySessions)
     .where(eq(studySessions.userId, userId))
@@ -64,7 +64,7 @@ export async function createSession(
     createdAt: options?.createdAt ?? new Date().toISOString(),
   };
 
-  const [row] = await db
+  const [row] = await getDb()
     .insert(studySessions)
     .values(toInsertRow(session, userId))
     .returning();
@@ -81,7 +81,7 @@ export async function updateSession(
   id: string,
   data: SessionInput,
 ): Promise<StudySession> {
-  const [row] = await db
+  const [row] = await getDb()
     .update(studySessions)
     .set({
       topicId: data.topicId,
@@ -103,7 +103,7 @@ export async function updateSession(
 }
 
 export async function deleteSession(userId: string, id: string): Promise<void> {
-  const [row] = await db
+  const [row] = await getDb()
     .delete(studySessions)
     .where(and(eq(studySessions.userId, userId), eq(studySessions.id, id)))
     .returning({ id: studySessions.id });
@@ -121,7 +121,7 @@ export async function bulkImportSessions(
     return [];
   }
 
-  const rows = await db
+  const rows = await getDb()
     .insert(studySessions)
     .values(sessions.map((session) => toInsertRow(session, userId)))
     .returning();

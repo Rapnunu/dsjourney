@@ -1,7 +1,7 @@
 import "server-only";
 
 import { and, eq, sql } from "drizzle-orm";
-import { db } from "@/lib/db/client";
+import { getDb } from "@/lib/db/client";
 import { roadmapProgress, type RoadmapProgressRow } from "@/lib/db/schema";
 import type { MasteryLevel } from "@/features/roadmap/types";
 
@@ -22,7 +22,7 @@ function fromRow(row: RoadmapProgressRow): RoadmapProgressRecord {
 export async function listRoadmapProgress(
   userId: string,
 ): Promise<RoadmapProgressRecord[]> {
-  const rows = await db
+  const rows = await getDb()
     .select()
     .from(roadmapProgress)
     .where(eq(roadmapProgress.userId, userId));
@@ -36,7 +36,7 @@ export async function upsertRoadmapProgress(
   mastery: MasteryLevel,
   lastStudied?: string | null,
 ): Promise<RoadmapProgressRecord> {
-  const [row] = await db
+  const [row] = await getDb()
     .insert(roadmapProgress)
     .values({
       userId,
@@ -64,7 +64,7 @@ export async function deleteRoadmapProgressOverride(
   userId: string,
   topicId: string,
 ): Promise<void> {
-  await db
+  await getDb()
     .delete(roadmapProgress)
     .where(
       and(
@@ -86,7 +86,7 @@ export async function bulkImportRoadmapProgress(
     return [];
   }
 
-  const rows = await db
+  const rows = await getDb()
     .insert(roadmapProgress)
     .values(
       records.map((record) => ({

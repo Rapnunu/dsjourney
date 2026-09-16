@@ -14,12 +14,12 @@ import {
   isStoredSessionsMigrationComplete,
 } from "@/lib/storage";
 import {
-  bulkImportSessionsAction,
-  createSessionAction,
-  deleteSessionAction,
-  listSessionsAction,
-  updateSessionAction,
-} from "./actions";
+  bulkImportSessionsRequest,
+  createSessionRequest,
+  deleteSessionRequest,
+  fetchSessions,
+  updateSessionRequest,
+} from "./api";
 import type { StudySession } from "./types";
 
 type SessionInput = Omit<StudySession, "id" | "createdAt">;
@@ -43,7 +43,14 @@ function sortSessions(sessions: StudySession[]): StudySession[] {
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
+  if (error instanceof Error) return error.message;
+  if (typeof error !== "object" || error === null) return fallback;
+
+  const candidate = error as Record<string, unknown>;
+  const message =
+    typeof candidate.message === "string" ? candidate.message : fallback;
+
+  return message;
 }
 
 export function SessionProvider({ children }: { children: ReactNode }) {
@@ -56,14 +63,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
     async function loadSessions() {
       try {
-        let loaded = await listSessionsAction();
+        let loaded = await fetchSessions();
 
         if (loaded.length > 0) {
           completeStoredSessionsMigration();
         } else if (!isStoredSessionsMigrationComplete()) {
           const stored = getStoredSessions();
           if (stored && stored.length > 0) {
-            loaded = await bulkImportSessionsAction(stored);
+            loaded = await bulkImportSessionsRequest(stored);
             completeStoredSessionsMigration();
           }
         }
@@ -90,7 +97,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const addSession = useCallback(async (data: SessionInput) => {
     try {
-      const created = await createSessionAction(data);
+      const created = await createSessionRequest(data);
       setSessions((previous) => sortSessions([created, ...previous]));
       setError(null);
       return true;
@@ -102,7 +109,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const updateSession = useCallback(async (id: string, data: SessionInput) => {
     try {
-      const updated = await updateSessionAction(id, data);
+      const updated = await updateSessionRequest(id, data);
       setSessions((previous) =>
         sortSessions(
           previous.map((session) => (session.id === id ? updated : session)),
@@ -118,7 +125,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const deleteSession = useCallback(async (id: string) => {
     try {
-      await deleteSessionAction(id);
+      await deleteSessionRequest(id);
       setSessions((previous) => previous.filter((session) => session.id !== id));
       setError(null);
       return true;
