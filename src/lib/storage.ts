@@ -12,12 +12,11 @@ import type { Project } from "@/features/portfolio/data/projects";
 
 // ── Constants ──────────────────────────────────────────────
 const SESSIONS_KEY = "ds-prep-tracker:sessions";
-const SESSIONS_MIGRATION_KEY = "ds-prep-tracker:sessions:supabase-migrated";
+const SESSIONS_MIGRATION_KEY = "ds-prep-tracker:sessions:neon-migrated";
 const ROADMAP_KEY = "ds-prep-tracker:roadmap";
-const ROADMAP_MIGRATION_KEY = "ds-prep-tracker:roadmap:supabase-migrated";
+const ROADMAP_MIGRATION_KEY = "ds-prep-tracker:roadmap:neon-migrated";
 const PORTFOLIO_KEY = "ds-prep-tracker:portfolio";
-const PORTFOLIO_MIGRATION_KEY =
-  "ds-prep-tracker:portfolio:supabase-migrated";
+const PORTFOLIO_MIGRATION_KEY = "ds-prep-tracker:portfolio:neon-migrated";
 
 // ── Helpers ────────────────────────────────────────────────
 

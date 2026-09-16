@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { ArrowRight, LoaderCircle } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { signInAction, signUpAction } from "./actions";
 
 type AuthMode = "sign_in" | "sign_up";
 
@@ -13,7 +13,6 @@ interface AuthFormProps {
 }
 
 export function AuthForm({ initialError, initialMessage }: AuthFormProps) {
-  const router = useRouter();
   const [mode, setMode] = useState<AuthMode>("sign_in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,42 +45,29 @@ export function AuthForm({ initialError, initialMessage }: AuthFormProps) {
     }
 
     setIsSubmitting(true);
-    const supabase = createClient();
 
-    if (mode === "sign_up") {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/confirm`,
-        },
-      });
+    try {
+      const result =
+        mode === "sign_up"
+          ? await signUpAction(email, password)
+          : await signInAction(email, password);
 
-      if (signUpError) {
-        setError(signUpError.message);
-      } else if (data.session) {
-        router.replace("/today");
-        router.refresh();
-      } else {
-        setMessage(
-          "Check your email to confirm your account, then return here to sign in.",
-        );
+      if (result?.error) {
+        setError(result.error);
       }
-    } else {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        setError(signInError.message);
-      } else {
-        router.replace("/today");
-        router.refresh();
+    } catch (submitError) {
+      if (isRedirectError(submitError)) {
+        throw submitError;
       }
+
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Authentication failed. Try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   }
 
   const inputClasses =

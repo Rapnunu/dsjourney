@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth/server";
 import { AuthForm } from "./auth-form";
 
 interface AuthPageProps {
@@ -7,7 +9,15 @@ interface AuthPageProps {
   }>;
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function AuthPage({ searchParams }: AuthPageProps) {
+  const { data: session } = await auth.getSession();
+
+  if (session?.user) {
+    redirect("/today");
+  }
+
   const params = await searchParams;
 
   return (

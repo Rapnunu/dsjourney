@@ -5,7 +5,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -14,20 +13,19 @@ import {
   getStoredRoadmap,
   isStoredRoadmapMigrationComplete,
 } from "@/lib/storage";
-import { createClient } from "@/lib/supabase/client";
+import type { RoadmapProgressRecord } from "@/lib/repositories/roadmap";
+import {
+  bulkImportRoadmapProgressAction,
+  deleteRoadmapProgressOverrideAction,
+  listRoadmapProgressAction,
+  upsertRoadmapProgressAction,
+} from "./actions";
 import { mockRoadmapData } from "./data";
 import type {
   MasteryLevel,
   RoadmapCategory,
   RoadmapTopic,
 } from "./types";
-
-interface RoadmapProgressRow {
-  user_id: string;
-  topic_id: string;
-  mastery: MasteryLevel;
-  last_studied: string | null;
-}
 
 interface RoadmapContextType {
   roadmap: RoadmapCategory[];
@@ -48,8 +46,8 @@ function cloneDefaultRoadmap(): RoadmapCategory[] {
   }));
 }
 
-function mergeProgress(rows: RoadmapProgressRow[]): RoadmapCategory[] {
-  const progressByTopic = new Map(rows.map((row) => [row.topic_id, row]));
+function mergeProgress(records: RoadmapProgressRecord[]): RoadmapCategory[] {
+  const progressByTopic = new Map(records.map((row) => [row.topicId, row]));
 
   return cloneDefaultRoadmap().map((category) => ({
     ...category,
@@ -60,9 +58,7 @@ function mergeProgress(rows: RoadmapProgressRow[]): RoadmapCategory[] {
       return {
         ...topic,
         mastery: progress.mastery,
-        ...(progress.last_studied
-          ? { lastStudied: progress.last_studied }
-          : {}),
+        ...(progress.lastStudied ? { lastStudied: progress.lastStudied } : {}),
       };
     }),
   }));
@@ -76,10 +72,7 @@ function getDefaultTopics(): Map<string, RoadmapTopic> {
   );
 }
 
-function getLegacyProgress(
-  roadmap: RoadmapCategory[],
-  userId: string,
-): RoadmapProgressRow[] {
+function getLegacyProgress(roadmap: RoadmapCategory[]) {
   const defaults = getDefaultTopics();
 
   return roadmap.flatMap((category) =>
@@ -94,10 +87,9 @@ function getLegacyProgress(
 
       return [
         {
-          user_id: userId,
-          topic_id: topic.id,
+          topicId: topic.id,
           mastery: topic.mastery,
-          last_studied: topic.lastStudied ?? null,
+          lastStudied: topic.lastStudied ?? null,
         },
       ];
     }),
@@ -111,24 +103,11 @@ function getErrorMessage(error: unknown, fallback: string): string {
   const candidate = error as Record<string, unknown>;
   const message =
     typeof candidate.message === "string" ? candidate.message : fallback;
-  const details =
-    typeof candidate.details === "string" && candidate.details
-      ? ` ${candidate.details}`
-      : "";
-  const hint =
-    typeof candidate.hint === "string" && candidate.hint
-      ? ` Hint: ${candidate.hint}`
-      : "";
-  const code =
-    typeof candidate.code === "string" && candidate.code
-      ? ` (${candidate.code})`
-      : "";
 
-  return `${message}${code}${details}${hint}`;
+  return message;
 }
 
 export function RoadmapProvider({ children }: { children: ReactNode }) {
-  const supabase = useMemo(() => createClient(), []);
   const [roadmap, setRoadmap] = useState<RoadmapCategory[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -138,42 +117,20 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
 
     async function loadRoadmap() {
       try {
-        const { data: userData, error: userError } =
-          await supabase.auth.getUser();
-        if (userError) throw userError;
-        if (!userData.user) {
-          throw new Error("You must be signed in to load roadmap progress.");
-        }
+        let records = await listRoadmapProgressAction();
+        let resolvedRoadmap = mergeProgress(records);
 
-        const { data, error: fetchError } = await supabase
-          .from("roadmap_progress")
-          .select("user_id, topic_id, mastery, last_studied")
-          .eq("user_id", userData.user.id);
-        if (fetchError) throw fetchError;
-
-        let rows = (data ?? []) as RoadmapProgressRow[];
-        let resolvedRoadmap = mergeProgress(rows);
-        if (rows.length > 0) {
+        if (records.length > 0) {
           completeStoredRoadmapMigration();
         } else if (!isStoredRoadmapMigrationComplete()) {
           const stored = getStoredRoadmap();
           if (stored !== null) {
             try {
-              const legacyProgress = getLegacyProgress(
-                stored,
-                userData.user.id,
-              );
+              const legacyProgress = getLegacyProgress(stored);
 
               if (legacyProgress.length > 0) {
-                const { data: imported, error: importError } = await supabase
-                  .from("roadmap_progress")
-                  .upsert(legacyProgress, {
-                    onConflict: "user_id,topic_id",
-                  })
-                  .select("user_id, topic_id, mastery, last_studied");
-                if (importError) throw importError;
-                rows = (imported ?? []) as RoadmapProgressRow[];
-                resolvedRoadmap = mergeProgress(rows);
+                records = await bulkImportRoadmapProgressAction(legacyProgress);
+                resolvedRoadmap = mergeProgress(records);
               }
 
               completeStoredRoadmapMigration();
@@ -210,7 +167,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
     return () => {
       isActive = false;
     };
-  }, [supabase]);
+  }, []);
 
   const updateMastery = useCallback(
     async (topicId: string, mastery: MasteryLevel) => {
@@ -220,13 +177,6 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
           .find((candidate) => candidate.id === topicId);
         if (!topic) throw new Error("Roadmap topic not found.");
 
-        const { data: userData, error: userError } =
-          await supabase.auth.getUser();
-        if (userError) throw userError;
-        if (!userData.user) {
-          throw new Error("You must be signed in to update roadmap progress.");
-        }
-
         const defaultTopic = getDefaultTopics().get(topicId);
         const matchesDefault =
           defaultTopic !== undefined &&
@@ -234,25 +184,13 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
           topic.lastStudied === defaultTopic.lastStudied;
 
         if (matchesDefault) {
-          const { error: deleteError } = await supabase
-            .from("roadmap_progress")
-            .delete()
-            .eq("user_id", userData.user.id)
-            .eq("topic_id", topicId);
-          if (deleteError) throw deleteError;
+          await deleteRoadmapProgressOverrideAction(topicId);
         } else {
-          const { error: upsertError } = await supabase
-            .from("roadmap_progress")
-            .upsert(
-              {
-                user_id: userData.user.id,
-                topic_id: topicId,
-                mastery,
-                last_studied: topic.lastStudied ?? null,
-              },
-              { onConflict: "user_id,topic_id" },
-            );
-          if (upsertError) throw upsertError;
+          await upsertRoadmapProgressAction(
+            topicId,
+            mastery,
+            topic.lastStudied ?? null,
+          );
         }
 
         setRoadmap((previous) =>
@@ -274,7 +212,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [roadmap, supabase],
+    [roadmap],
   );
 
   return (

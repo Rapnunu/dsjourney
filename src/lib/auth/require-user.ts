@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth/server";
 
 export class UnauthorizedError extends Error {
   constructor(message = "Authentication required.") {
@@ -12,22 +12,23 @@ export class UnauthorizedError extends Error {
 export interface AuthenticatedUser {
   id: string;
   email?: string;
+  name?: string;
 }
 
 export async function requireUser(): Promise<AuthenticatedUser> {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
+  const { data: session, error } = await auth.getSession();
 
   if (error) {
     throw error;
   }
 
-  if (!data.user) {
+  if (!session?.user) {
     throw new UnauthorizedError();
   }
 
   return {
-    id: data.user.id,
-    email: data.user.email,
+    id: session.user.id,
+    email: session.user.email,
+    name: session.user.name,
   };
 }
