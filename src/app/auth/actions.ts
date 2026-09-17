@@ -1,14 +1,15 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { MIN_PASSWORD_LENGTH } from "@/lib/api/validation-limits";
 import { getTestAccountCredentials, isDemoLoginEnvironment } from "@/lib/auth/demo-login";
 import { auth } from "@/lib/auth/server";
 
+export type AuthActionResult = { success: true } | { error: string };
+
 export async function signInAction(
   email: string,
   password: string,
-): Promise<{ error: string } | undefined> {
+): Promise<AuthActionResult> {
   const { error } = await auth.signIn.email({
     email,
     password,
@@ -18,13 +19,13 @@ export async function signInAction(
     return { error: error.message || "Failed to sign in. Try again." };
   }
 
-  redirect("/today");
+  return { success: true };
 }
 
 export async function signUpAction(
   email: string,
   password: string,
-): Promise<{ error: string } | undefined> {
+): Promise<AuthActionResult> {
   if (password.length < MIN_PASSWORD_LENGTH) {
     return {
       error: `Password must contain at least ${MIN_PASSWORD_LENGTH} characters.`,
@@ -43,15 +44,15 @@ export async function signUpAction(
     return { error: error.message || "Failed to create account." };
   }
 
-  redirect("/today");
+  return { success: true };
 }
 
-export async function signOutAction() {
+export async function signOutAction(): Promise<AuthActionResult> {
   await auth.signOut();
-  redirect("/auth");
+  return { success: true };
 }
 
-export async function demoLoginAction(): Promise<{ error: string } | undefined> {
+export async function demoLoginAction(): Promise<AuthActionResult> {
   if (!isDemoLoginEnvironment()) {
     return { error: "Demo login is not available." };
   }
@@ -71,5 +72,5 @@ export async function demoLoginAction(): Promise<{ error: string } | undefined> 
     return { error: error.message || "Demo sign-in failed. Try again." };
   }
 
-  redirect("/today");
+  return { success: true };
 }

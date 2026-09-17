@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { LogOut } from "lucide-react";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { authClient } from "@/lib/auth/client";
 import { signOutAction } from "@/app/auth/actions";
 
@@ -25,12 +24,15 @@ export function UserProfile({ collapsed = false }: UserProfileProps) {
     setError("");
     startTransition(async () => {
       try {
-        await signOutAction();
-      } catch (signOutError) {
-        if (isRedirectError(signOutError)) {
-          throw signOutError;
+        const result = await signOutAction();
+
+        if ("error" in result) {
+          setError(result.error);
+          return;
         }
 
+        window.location.replace("/auth");
+      } catch (signOutError) {
         setError(
           signOutError instanceof Error
             ? signOutError.message

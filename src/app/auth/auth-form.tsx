@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { demoLoginAction, signInAction, signUpAction } from "./actions";
 
@@ -12,6 +11,10 @@ interface AuthFormProps {
   initialMessage?: string;
   showDemoSection?: boolean;
   demoLoginAvailable?: boolean;
+}
+
+function navigateAfterAuthSuccess(): void {
+  window.location.replace("/today");
 }
 
 export function AuthForm({
@@ -60,14 +63,13 @@ export function AuthForm({
           ? await signUpAction(email, password)
           : await signInAction(email, password);
 
-      if (result?.error) {
+      if ("error" in result) {
         setError(result.error);
-      }
-    } catch (submitError) {
-      if (isRedirectError(submitError)) {
-        throw submitError;
+        return;
       }
 
+      navigateAfterAuthSuccess();
+    } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
@@ -90,14 +92,13 @@ export function AuthForm({
     try {
       const result = await demoLoginAction();
 
-      if (result?.error) {
+      if ("error" in result) {
         setError(result.error);
-      }
-    } catch (submitError) {
-      if (isRedirectError(submitError)) {
-        throw submitError;
+        return;
       }
 
+      navigateAfterAuthSuccess();
+    } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message

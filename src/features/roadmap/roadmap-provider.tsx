@@ -116,6 +116,10 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
     let isActive = true;
 
     async function loadRoadmap() {
+      if (isActive) {
+        setError(null);
+      }
+
       try {
         let records = await fetchRoadmapProgress();
         let resolvedRoadmap = mergeProgress(records);

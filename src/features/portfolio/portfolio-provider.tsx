@@ -61,6 +61,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     let isActive = true;
 
     async function loadProjects() {
+      if (isActive) {
+        setError(null);
+      }
+
       try {
         let loaded = await fetchPortfolioProjects();
 

@@ -62,6 +62,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     let isActive = true;
 
     async function loadSessions() {
+      if (isActive) {
+        setError(null);
+      }
+
       try {
         let loaded = await fetchSessions();
 
