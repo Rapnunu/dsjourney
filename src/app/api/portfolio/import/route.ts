@@ -1,10 +1,14 @@
 import { requireUser } from "@/lib/auth/require-user";
+import { readJsonBody } from "@/lib/api/parse-json";
 import {
   handleRouteError,
   jsonData,
-  jsonError,
+  validationErrorResponse,
 } from "@/lib/api/route-handler";
-import { parseProjectsImport } from "@/lib/api/validators";
+import {
+  isValidationError,
+  parseProjectsImport,
+} from "@/lib/api/validators";
 import { bulkImportPortfolioProjects } from "@/lib/repositories/portfolio";
 
 export const dynamic = "force-dynamic";
@@ -12,11 +16,11 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     const user = await requireUser();
-    const body = await request.json();
+    const body = await readJsonBody(request);
     const parsed = parseProjectsImport(body);
 
-    if ("error" in parsed) {
-      return jsonError(parsed.error, 400);
+    if (isValidationError(parsed)) {
+      return validationErrorResponse(parsed);
     }
 
     const projects = await bulkImportPortfolioProjects(user.id, parsed);

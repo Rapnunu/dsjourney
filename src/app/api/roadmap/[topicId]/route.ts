@@ -1,11 +1,16 @@
 import { requireUser } from "@/lib/auth/require-user";
+import { readJsonBody } from "@/lib/api/parse-json";
 import {
   handleRouteError,
   jsonData,
-  jsonError,
   jsonOk,
+  validationErrorResponse,
 } from "@/lib/api/route-handler";
-import { parseRoadmapUpsertBody } from "@/lib/api/validators";
+import {
+  isValidationError,
+  parseRoadmapUpsertBody,
+  parseTopicIdParam,
+} from "@/lib/api/validators";
 import {
   deleteRoadmapProgressOverride,
   upsertRoadmapProgress,
@@ -20,17 +25,23 @@ interface RouteContext {
 export async function PUT(request: Request, context: RouteContext) {
   try {
     const user = await requireUser();
-    const { topicId } = await context.params;
-    const body = await request.json();
+    const { topicId: rawTopicId } = await context.params;
+    const topicIdResult = parseTopicIdParam(rawTopicId);
+
+    if (isValidationError(topicIdResult)) {
+      return validationErrorResponse(topicIdResult);
+    }
+
+    const body = await readJsonBody(request);
     const parsed = parseRoadmapUpsertBody(body);
 
-    if ("error" in parsed) {
-      return jsonError(parsed.error, 400);
+    if (isValidationError(parsed)) {
+      return validationErrorResponse(parsed);
     }
 
     const record = await upsertRoadmapProgress(
       user.id,
-      topicId,
+      topicIdResult,
       parsed.mastery,
       parsed.lastStudied,
     );
@@ -43,8 +54,14 @@ export async function PUT(request: Request, context: RouteContext) {
 export async function DELETE(_request: Request, context: RouteContext) {
   try {
     const user = await requireUser();
-    const { topicId } = await context.params;
-    await deleteRoadmapProgressOverride(user.id, topicId);
+    const { topicId: rawTopicId } = await context.params;
+    const topicIdResult = parseTopicIdParam(rawTopicId);
+
+    if (isValidationError(topicIdResult)) {
+      return validationErrorResponse(topicIdResult);
+    }
+
+    await deleteRoadmapProgressOverride(user.id, topicIdResult);
     return jsonOk();
   } catch (error) {
     return handleRouteError(error, "Unable to delete roadmap progress override.");

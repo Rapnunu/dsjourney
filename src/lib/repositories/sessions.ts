@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { studySessions, type StudySessionRow } from "@/lib/db/schema";
 import type { StudySession } from "@/features/sessions/types";
@@ -124,6 +124,19 @@ export async function bulkImportSessions(
   const rows = await getDb()
     .insert(studySessions)
     .values(sessions.map((session) => toInsertRow(session, userId)))
+    .onConflictDoUpdate({
+      target: [studySessions.userId, studySessions.id],
+      set: {
+        topicId: sql`excluded.topic_id`,
+        topicName: sql`excluded.topic_name`,
+        categoryName: sql`excluded.category_name`,
+        studyDate: sql`excluded.study_date`,
+        hoursStudied: sql`excluded.hours_studied`,
+        difficultyRating: sql`excluded.difficulty_rating`,
+        notes: sql`excluded.notes`,
+        createdAt: sql`excluded.created_at`,
+      },
+    })
     .returning();
 
   return sortSessions(rows.map(fromRow));

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { portfolioProjects, type PortfolioProjectRow } from "@/lib/db/schema";
 import type { Project, ProjectStatus } from "@/features/portfolio/data/projects";
@@ -127,6 +127,20 @@ export async function bulkImportPortfolioProjects(
   const rows = await getDb()
     .insert(portfolioProjects)
     .values(projects.map((project) => toInsertRow(project, userId)))
+    .onConflictDoUpdate({
+      target: [portfolioProjects.userId, portfolioProjects.id],
+      set: {
+        title: sql`excluded.title`,
+        description: sql`excluded.description`,
+        status: sql`excluded.status`,
+        technologies: sql`excluded.technologies`,
+        githubUrl: sql`excluded.github_url`,
+        demoUrl: sql`excluded.demo_url`,
+        highlights: sql`excluded.highlights`,
+        startDate: sql`excluded.start_date`,
+        endDate: sql`excluded.end_date`,
+      },
+    })
     .returning();
 
   return sortProjects(rows.map(fromRow));

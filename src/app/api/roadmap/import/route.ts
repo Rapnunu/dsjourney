@@ -1,10 +1,14 @@
 import { requireUser } from "@/lib/auth/require-user";
+import { readJsonBody } from "@/lib/api/parse-json";
 import {
   handleRouteError,
   jsonData,
-  jsonError,
+  validationErrorResponse,
 } from "@/lib/api/route-handler";
-import { parseRoadmapImportRecords } from "@/lib/api/validators";
+import {
+  isValidationError,
+  parseRoadmapImportRecords,
+} from "@/lib/api/validators";
 import { bulkImportRoadmapProgress } from "@/lib/repositories/roadmap";
 
 export const dynamic = "force-dynamic";
@@ -12,11 +16,11 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     const user = await requireUser();
-    const body = await request.json();
+    const body = await readJsonBody(request);
     const parsed = parseRoadmapImportRecords(body);
 
-    if ("error" in parsed) {
-      return jsonError(parsed.error, 400);
+    if (isValidationError(parsed)) {
+      return validationErrorResponse(parsed);
     }
 
     const records = await bulkImportRoadmapProgress(user.id, parsed);

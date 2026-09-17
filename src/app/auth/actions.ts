@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { MIN_PASSWORD_LENGTH } from "@/lib/api/validation-limits";
 import { getTestAccountCredentials, isDemoLoginEnvironment } from "@/lib/auth/demo-login";
 import { auth } from "@/lib/auth/server";
 
@@ -24,6 +25,12 @@ export async function signUpAction(
   email: string,
   password: string,
 ): Promise<{ error: string } | undefined> {
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return {
+      error: `Password must contain at least ${MIN_PASSWORD_LENGTH} characters.`,
+    };
+  }
+
   const name = email.split("@")[0]?.trim() || "Account";
 
   const { error } = await auth.signUp.email({

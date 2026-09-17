@@ -1,10 +1,14 @@
 import { requireUser } from "@/lib/auth/require-user";
+import { readJsonBody } from "@/lib/api/parse-json";
 import {
   handleRouteError,
   jsonData,
-  jsonError,
+  validationErrorResponse,
 } from "@/lib/api/route-handler";
-import { parseStudySessionsImport } from "@/lib/api/validators";
+import {
+  isValidationError,
+  parseStudySessionsImport,
+} from "@/lib/api/validators";
 import { bulkImportSessions } from "@/lib/repositories/sessions";
 
 export const dynamic = "force-dynamic";
@@ -12,11 +16,11 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     const user = await requireUser();
-    const body = await request.json();
+    const body = await readJsonBody(request);
     const parsed = parseStudySessionsImport(body);
 
-    if ("error" in parsed) {
-      return jsonError(parsed.error, 400);
+    if (isValidationError(parsed)) {
+      return validationErrorResponse(parsed);
     }
 
     const sessions = await bulkImportSessions(user.id, parsed);

@@ -1,11 +1,12 @@
 import { requireUser } from "@/lib/auth/require-user";
+import { readJsonBody } from "@/lib/api/parse-json";
 import {
   handleRouteError,
   jsonData,
-  jsonError,
   jsonOk,
+  validationErrorResponse,
 } from "@/lib/api/route-handler";
-import { parseSessionInput } from "@/lib/api/validators";
+import { isValidationError, parseSessionInput } from "@/lib/api/validators";
 import {
   deleteSession,
   updateSession,
@@ -21,11 +22,11 @@ export async function PATCH(request: Request, context: RouteContext) {
   try {
     const user = await requireUser();
     const { id } = await context.params;
-    const body = await request.json();
+    const body = await readJsonBody(request);
     const parsed = parseSessionInput(body);
 
-    if ("error" in parsed) {
-      return jsonError(parsed.error, 400);
+    if (isValidationError(parsed)) {
+      return validationErrorResponse(parsed);
     }
 
     const session = await updateSession(user.id, id, parsed);

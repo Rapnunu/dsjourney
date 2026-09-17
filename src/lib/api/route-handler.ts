@@ -1,6 +1,7 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
+import { InvalidJsonBodyError } from "@/lib/api/parse-json";
 import { UnauthorizedError } from "@/lib/auth/require-user";
 import { getActionErrorMessage } from "@/lib/server/action-error";
 
@@ -16,10 +17,21 @@ export function jsonError(message: string, status: number): NextResponse {
   return NextResponse.json({ error: message }, { status });
 }
 
+export function validationErrorResponse(result: {
+  error: string;
+  status?: number;
+}): NextResponse {
+  return jsonError(result.error, result.status ?? 400);
+}
+
 export function handleRouteError(
   error: unknown,
   fallback: string,
 ): NextResponse {
+  if (error instanceof InvalidJsonBodyError) {
+    return jsonError(error.message, 400);
+  }
+
   if (error instanceof UnauthorizedError) {
     return jsonError(error.message, 401);
   }
