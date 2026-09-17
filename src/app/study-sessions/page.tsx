@@ -7,7 +7,7 @@ export default function StudySessionsPage() {
     <>
       <PageHeader
         title="Study Sessions"
-        subtitle="Track and review your study sessions"
+        subtitle="Log focused study sessions and review your history."
         icon={<BookOpen size={22} />}
       />
       <SessionsView />

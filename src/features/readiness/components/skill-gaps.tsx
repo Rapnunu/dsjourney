@@ -6,16 +6,16 @@ interface SkillGapsProps {
 }
 
 const SEVERITY_COLORS: Record<number, { bg: string; border: string; icon: string }> = {
-  0: { bg: "bg-rose-500/5", border: "border-rose-500/20", icon: "text-rose-400" },
-  1: { bg: "bg-amber-500/5", border: "border-amber-500/20", icon: "text-amber-400" },
-  2: { bg: "bg-orange-500/5", border: "border-orange-500/20", icon: "text-orange-400" },
+  0: { bg: "bg-brand-blue/5", border: "border-brand-blue/20", icon: "text-brand-blue" },
+  1: { bg: "bg-brand-teal/5", border: "border-brand-teal/20", icon: "text-brand-teal" },
+  2: { bg: "bg-bg-elevated", border: "border-border-subtle", icon: "text-text-muted" },
 };
 
 export function SkillGaps({ gaps }: SkillGapsProps) {
   return (
-    <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5">
+    <div className="rounded-[10px] border border-border-subtle bg-bg-surface p-5">
       <div className="flex items-center gap-2 mb-4">
-        <AlertTriangle size={16} className="text-amber-400" />
+        <AlertTriangle size={16} className="text-brand-teal" />
         <h3 className="text-sm font-semibold text-text-primary">
           Top Skill Gaps
         </h3>

@@ -4,13 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CalendarDays,
+  LayoutDashboard,
   Map,
   BookOpen,
   BarChart3,
   Gauge,
   FolderKanban,
+  PanelLeftClose,
+  PanelLeftOpen,
   X,
 } from "lucide-react";
+import { DsjourneyLogo } from "@/components/brand/dsjourney-logo";
 import { useSidebar } from "./sidebar-context";
 import { UserProfile } from "@/components/ui/user-profile";
 import type { ComponentType } from "react";
@@ -22,6 +26,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Today", href: "/today", icon: CalendarDays },
   { label: "Roadmap", href: "/roadmap", icon: Map },
   { label: "Study Sessions", href: "/study-sessions", icon: BookOpen },
@@ -30,46 +35,23 @@ const navItems: NavItem[] = [
   { label: "Portfolio", href: "/portfolio", icon: FolderKanban },
 ];
 
-function Logo({ collapsed }: { collapsed: boolean }) {
+function SidebarBrand({ collapsed }: { collapsed: boolean }) {
   return (
-    <div className="flex items-center gap-3 px-3 py-4">
-      <div className="flex-shrink-0 h-8 w-8 rounded-lg bg-gradient-to-br from-accent to-purple-500 flex items-center justify-center">
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M12 2L2 7L12 12L22 7L12 2Z"
-            fill="white"
-            opacity="0.9"
-          />
-          <path
-            d="M2 17L12 22L22 17"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity="0.6"
-          />
-          <path
-            d="M2 12L12 17L22 12"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity="0.8"
-          />
-        </svg>
-      </div>
+    <Link
+      href="/today"
+      className="focus-ring flex items-center gap-3 rounded-lg px-2 py-1"
+      aria-label="DSJourney home"
+    >
+      <DsjourneyLogo
+        variant="icon-dark"
+        className="h-9 w-9 shrink-0"
+      />
       {!collapsed && (
-        <span className="text-sm font-semibold text-text-primary tracking-tight whitespace-nowrap">
-          DS Prep Tracker
+        <span className="text-sm font-semibold tracking-tight text-text-primary whitespace-nowrap">
+          DSJourney
         </span>
       )}
-    </div>
+    </Link>
   );
 }
 
@@ -83,47 +65,68 @@ function NavLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
     <Link
       href={item.href}
       onClick={() => setMobileOpen(false)}
+      title={collapsed ? item.label : undefined}
       className={`
-        focus-ring group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium
+        focus-ring group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium
         transition-colors duration-150
         ${collapsed ? "justify-center" : ""}
         ${
           isActive
-            ? "bg-bg-surface-hover text-text-primary"
+            ? "bg-bg-elevated text-text-primary"
             : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary"
         }
       `}
     >
-      {/* Active indicator bar */}
       {isActive && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-accent" />
+        <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brand-teal" />
       )}
-      <Icon size={18} className={isActive ? "text-accent" : "text-text-muted group-hover:text-text-secondary"} />
+      <Icon
+        size={18}
+        className={
+          isActive
+            ? "text-brand-teal"
+            : "text-text-muted group-hover:text-text-secondary"
+        }
+      />
       {!collapsed && <span>{item.label}</span>}
     </Link>
   );
 }
 
 export function Sidebar() {
-  const { isCollapsed, isMobileOpen, setMobileOpen } = useSidebar();
+  const { isCollapsed, isMobileOpen, setMobileOpen, toggleCollapsed } =
+    useSidebar();
+  const brandCollapsed = isCollapsed && !isMobileOpen;
 
   const sidebarContent = (
     <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-1 border-b border-border-subtle">
-        <Logo collapsed={isCollapsed && !isMobileOpen} />
-        {/* Mobile close button */}
-        <button
-          onClick={() => setMobileOpen(false)}
-          className="focus-ring mr-2 rounded-md p-1.5 text-text-muted hover:text-text-primary hover:bg-bg-surface-hover md:hidden"
-          aria-label="Close sidebar"
-        >
-          <X size={18} />
-        </button>
+      <div className="flex items-center justify-between gap-2 border-b border-border-subtle px-3 py-3">
+        <SidebarBrand collapsed={brandCollapsed} />
+        <div className="flex shrink-0 items-center">
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            className="focus-ring hidden rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg-surface-hover hover:text-text-primary md:inline-flex"
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? (
+              <PanelLeftOpen size={16} />
+            ) : (
+              <PanelLeftClose size={16} />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            className="focus-ring rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg-surface-hover hover:text-text-primary md:hidden"
+            aria-label="Close sidebar"
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-1">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-3">
         {navItems.map((item) => (
           <NavLink
             key={item.href}
@@ -133,7 +136,6 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Footer */}
       <div className="border-t border-border-subtle px-1">
         <UserProfile collapsed={isCollapsed && !isMobileOpen} />
       </div>
@@ -142,31 +144,26 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Desktop sidebar */}
       <aside
         className={`
-          sidebar-transition hidden md:flex flex-col flex-shrink-0
-          bg-bg-sidebar border-r border-border-primary h-full
-          ${isCollapsed ? "w-[60px]" : "w-[240px]"}
+          sidebar-transition hidden h-full flex-shrink-0 flex-col border-r border-border-subtle bg-bg-sidebar md:flex
+          ${isCollapsed ? "w-[72px]" : "w-[252px]"}
         `}
       >
         {sidebarContent}
       </aside>
 
-      {/* Mobile overlay */}
       {isMobileOpen && (
         <div
           className="fixed inset-0 z-40 md:hidden"
           aria-modal="true"
           role="dialog"
         >
-          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-bg-overlay backdrop-blur-sm"
+            className="absolute inset-0 bg-bg-overlay"
             onClick={() => setMobileOpen(false)}
           />
-          {/* Drawer */}
-          <aside className="relative z-50 flex h-full w-[260px] flex-col bg-bg-sidebar border-r border-border-primary shadow-2xl">
+          <aside className="relative z-50 flex h-full w-[260px] flex-col border-r border-border-subtle bg-bg-sidebar">
             {sidebarContent}
           </aside>
         </div>

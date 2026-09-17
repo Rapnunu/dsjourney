@@ -1,12 +1,7 @@
-export class ApiError extends Error {
-  readonly status: number;
+import { handleAuthExpiredFromApi } from "./auth-expiry";
+import { ApiError } from "./api-error";
 
-  constructor(message: string, status: number) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-  }
-}
+export { ApiError } from "./api-error";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -107,14 +102,24 @@ async function request(
   return { response, body };
 }
 
+function throwApiError(path: string, response: Response, body: unknown): never {
+  const error = new ApiError(
+    getErrorMessage(body, "Request failed."),
+    response.status,
+  );
+
+  if (response.status === 401) {
+    handleAuthExpiredFromApi();
+  }
+
+  throw error;
+}
+
 async function requestData<T>(path: string, init?: RequestInit): Promise<T> {
   const { response, body } = await request(path, init);
 
   if (!response.ok) {
-    throw new ApiError(
-      getErrorMessage(body, "Request failed."),
-      response.status,
-    );
+    throwApiError(path, response, body);
   }
 
   return extractData<T>(body, path, response);
@@ -149,10 +154,7 @@ export async function apiDelete(path: string): Promise<void> {
   const { response, body } = await request(path, { method: "DELETE" });
 
   if (!response.ok) {
-    throw new ApiError(
-      getErrorMessage(body, "Request failed."),
-      response.status,
-    );
+    throwApiError(path, response, body);
   }
 
   assertDeleteSuccess(body, path, response);

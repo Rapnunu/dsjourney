@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Search, X, Pencil, Trash2 } from "lucide-react";
+import { DsSelect } from "@/components/ui/ds-select";
 import type { StudySession } from "../types";
 import { DifficultyRating } from "./difficulty-rating";
 
@@ -79,23 +80,21 @@ export function SessionTable({ sessions, onEdit, onDelete }: SessionTableProps) 
           )}
         </div>
 
-        {/* Category filter */}
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="h-9 px-3 rounded-lg border border-border-primary bg-bg-surface/50 text-sm text-text-primary
-            focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent
-            transition-colors duration-150"
-        >
-          <option value="all">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+        <div className="w-full sm:w-52">
+          <DsSelect
+            value={categoryFilter}
+            onValueChange={setCategoryFilter}
+            options={[
+              { value: "all", label: "All Categories" },
+              ...categories.map((cat) => ({ value: cat, label: cat })),
+            ]}
+            aria-label="Filter sessions by category"
+          />
+        </div>
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-border-primary bg-bg-surface/50 overflow-hidden">
+      <div className="rounded-[10px] border border-border-subtle bg-bg-surface overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -154,9 +153,21 @@ export function SessionTable({ sessions, onEdit, onDelete }: SessionTableProps) 
                     </td>
                   </tr>
                 ))
+              ) : sessions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-12 text-center">
+                    <p className="text-sm font-medium text-text-primary">
+                      No study sessions yet.
+                    </p>
+                    <p className="mx-auto mt-2 max-w-sm text-sm text-text-secondary">
+                      Log your first study session to start building your study
+                      history.
+                    </p>
+                  </td>
+                </tr>
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-text-muted text-sm">
+                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-text-muted">
                     No sessions found
                   </td>
                 </tr>

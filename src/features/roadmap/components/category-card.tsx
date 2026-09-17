@@ -58,7 +58,7 @@ export function CategoryCard({
   );
 
   return (
-    <div className="rounded-xl border border-border-primary bg-bg-surface/50 overflow-hidden transition-colors duration-150">
+    <div className="overflow-hidden rounded-[10px] border border-border-subtle bg-bg-surface transition-colors duration-150">
       {/* Header — always visible, clickable */}
       <button
         onClick={onToggle}

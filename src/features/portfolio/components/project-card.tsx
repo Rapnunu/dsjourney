@@ -20,7 +20,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
   const status = STATUS_CONFIG[project.status];
 
   return (
-    <div className="group rounded-xl border border-border-primary bg-bg-surface/50 p-5 flex flex-col hover:border-border-primary/80 hover:bg-bg-surface/70 transition-colors duration-150">
+    <div className="group dashboard-card-hover flex flex-col rounded-[10px] border border-border-subtle bg-bg-surface p-5">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <h4 className="text-base font-semibold text-text-primary group-hover:text-accent transition-colors duration-150">
@@ -44,7 +44,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
         <ul className="mb-4 space-y-1">
           {project.highlights.map((highlight, i) => (
             <li key={i} className="flex items-start gap-2 text-xs text-text-muted">
-              <span className="mt-1.5 h-1 w-1 rounded-full bg-accent flex-shrink-0" />
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-brand-teal" />
               {highlight}
             </li>
           ))}
@@ -86,9 +86,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
             href={project.demoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
-              text-white bg-accent hover:bg-accent-hover
-              focus-ring transition-colors duration-150"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-teal px-3 py-1.5 text-xs font-semibold text-[#071016] transition-colors hover:bg-brand-teal/90 focus-ring"
           >
             <ExternalLink size={13} />
             Live Demo

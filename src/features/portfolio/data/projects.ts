@@ -74,7 +74,7 @@ export function getTechColor(tech: string) {
 export const mockProjects: Project[] = [
   {
     id: "proj-1",
-    title: "DS Prep Tracker",
+    title: "DSJourney",
     description:
       "A full-stack web application to track data science interview preparation progress. Features include study session logging, roadmap visualization, readiness scoring, and analytics dashboards.",
     status: "in_progress",
@@ -161,6 +161,30 @@ export interface PortfolioStats {
   completedProjects: number;
   inProgressProjects: number;
   portfolioScore: number;
+}
+
+export interface ProjectStatusSegment {
+  status: ProjectStatus;
+  label: string;
+  count: number;
+  percentage: number;
+}
+
+export function getProjectStatusDistribution(
+  projects: Project[],
+): ProjectStatusSegment[] {
+  const total = projects.length;
+  const statuses: ProjectStatus[] = ["completed", "in_progress", "planned"];
+
+  return statuses.map((status) => {
+    const count = projects.filter((project) => project.status === status).length;
+    return {
+      status,
+      label: STATUS_CONFIG[status].label,
+      count,
+      percentage: total > 0 ? (count / total) * 100 : 0,
+    };
+  });
 }
 
 export function getPortfolioStats(projects: Project[]): PortfolioStats {

@@ -1,5 +1,6 @@
 "use client";
 
+import { DashboardScrollReveal } from "@/components/dashboard";
 import { PageHeader } from "@/components/ui/page-header";
 import { Gauge } from "lucide-react";
 import { ReadinessHero } from "./readiness-hero";
@@ -32,7 +33,7 @@ export function ReadinessView() {
     return (
       <PageHeader
         title="Readiness"
-        subtitle="Assess your data science internship readiness"
+        subtitle="See how close you are to internship-ready."
         icon={<Gauge size={22} />}
       />
     );
@@ -42,7 +43,7 @@ export function ReadinessView() {
     <div>
       <PageHeader
         title="Readiness"
-        subtitle="Assess your data science internship readiness"
+        subtitle="See how close you are to internship-ready."
         icon={<Gauge size={22} />}
       />
 
@@ -53,15 +54,22 @@ export function ReadinessView() {
         {/* Two-column layout */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Left column — wider */}
-          <div className="lg:col-span-3 space-y-6">
-            <CategoryBreakdown categories={categories} />
-            <RecommendedFocus topics={focusTopics} />
+          <div className="space-y-6 lg:col-span-3">
+            <DashboardScrollReveal>
+              <CategoryBreakdown categories={categories} />
+            </DashboardScrollReveal>
+            <DashboardScrollReveal delayMs={60}>
+              <RecommendedFocus topics={focusTopics} />
+            </DashboardScrollReveal>
           </div>
 
-          {/* Right column */}
-          <div className="lg:col-span-2 space-y-6">
-            <SkillGaps gaps={gaps} />
-            <InternshipChecklist items={checklistItems} />
+          <div className="space-y-6 lg:col-span-2">
+            <DashboardScrollReveal>
+              <SkillGaps gaps={gaps} />
+            </DashboardScrollReveal>
+            <DashboardScrollReveal delayMs={60}>
+              <InternshipChecklist items={checklistItems} />
+            </DashboardScrollReveal>
           </div>
         </div>
       </div>

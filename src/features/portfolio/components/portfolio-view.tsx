@@ -1,8 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { DashboardMagnet, DashboardScrollReveal } from "@/components/dashboard";
 import { PageHeader } from "@/components/ui/page-header";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { ProviderErrorBanner } from "@/components/ui/provider-error-banner";
 import { FolderKanban, Plus } from "lucide-react";
+import { showFriendlyError, showSuccessToast } from "@/lib/toast";
 import { PortfolioOverview } from "./portfolio-overview";
 import { FeaturedProjects } from "./featured-projects";
 import { SkillsDemonstrated } from "./skills-demonstrated";
@@ -21,12 +25,15 @@ export function PortfolioView() {
     projects,
     isHydrated,
     error,
+    reload,
     addProject,
     updateProject,
     deleteProject,
   } = usePortfolioStore();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const stats = useMemo(() => getPortfolioStats(projects), [projects]);
   const technologies = useMemo(
@@ -51,27 +58,64 @@ export function PortfolioView() {
   }
 
   async function handleSubmit(project: ProjectInput) {
-    let saved: boolean;
     if (editingProject) {
-      saved = await updateProject(editingProject.id, project);
-    } else {
-      saved = await addProject(project);
+      const saved = await updateProject(editingProject.id, project);
+      if (saved) {
+        showSuccessToast("Project updated", "Your portfolio project was saved.");
+        closeForm();
+      } else {
+        showFriendlyError(new Error("save failed"), "update", {
+          title: "Couldn't save project",
+          description:
+            "Something went wrong while saving your changes. Please try again.",
+        });
+      }
+      return saved;
     }
-    if (saved) closeForm();
+
+    const saved = await addProject(project);
+    if (saved) {
+      showSuccessToast("Project added", "Your new project is now in your portfolio.");
+      closeForm();
+    } else {
+      showFriendlyError(new Error("save failed"), "save", {
+        title: "Couldn't save project",
+        description:
+          "Something went wrong while saving your changes. Please try again.",
+      });
+    }
+    return saved;
   }
 
-  async function handleDelete(project: Project) {
-    if (window.confirm(`Delete "${project.title}"?`)) {
-      const deleted = await deleteProject(project.id);
-      if (deleted && editingProject?.id === project.id) closeForm();
+  function requestDelete(project: Project) {
+    setDeleteTarget(project);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+
+    setIsDeleting(true);
+    const deleted = await deleteProject(deleteTarget.id);
+    setIsDeleting(false);
+
+    if (deleted) {
+      showSuccessToast("Project deleted", `"${deleteTarget.title}" was removed.`);
+      if (editingProject?.id === deleteTarget.id) closeForm();
+      setDeleteTarget(null);
+      return;
     }
+
+    showFriendlyError(new Error("delete failed"), "delete", {
+      title: "Couldn't delete project",
+      description: "Something went wrong while deleting this project. Please try again.",
+    });
   }
 
   return (
     <div>
       <PageHeader
         title="Portfolio"
-        subtitle="Showcase your projects and achievements"
+        subtitle="Turn what you've learned into proof of skill."
         icon={<FolderKanban size={22} />}
       />
 
@@ -84,21 +128,21 @@ export function PortfolioView() {
       ) : (
       <div className="space-y-6">
         {error && (
-          <div
-            role="alert"
-            className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
-          >
-            {error}
-          </div>
+          <ProviderErrorBanner
+            title={error.title}
+            description={error.description}
+            onRetry={() => void reload()}
+          />
         )}
-        {/* Overview KPI cards */}
         <PortfolioOverview stats={stats} />
 
         <div className="flex justify-end">
-          <button onClick={openAddForm} className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover focus-ring">
-            <Plus size={15} />
-            Add Project
-          </button>
+          <DashboardMagnet>
+            <button onClick={openAddForm} className="inline-flex items-center gap-2 rounded-lg bg-brand-teal px-4 py-2.5 text-sm font-semibold text-[#071016] transition-colors hover:bg-brand-teal/90 focus-ring">
+              <Plus size={15} />
+              Add Project
+            </button>
+          </DashboardMagnet>
         </div>
 
         {isFormOpen && (
@@ -110,24 +154,42 @@ export function PortfolioView() {
           />
         )}
 
-        {/* Featured projects grid */}
-        <FeaturedProjects
-          projects={projects}
-          onEdit={openEditForm}
-          onDelete={handleDelete}
-        />
+        <DashboardScrollReveal>
+          <FeaturedProjects
+            projects={projects}
+            onEdit={openEditForm}
+            onDelete={requestDelete}
+            onAddProject={openAddForm}
+          />
+        </DashboardScrollReveal>
 
-        {/* Skills + Recruiter View row */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <DashboardScrollReveal className="lg:col-span-2">
             <SkillsDemonstrated technologies={technologies} />
-          </div>
-          <div className="lg:col-span-3">
+          </DashboardScrollReveal>
+          <DashboardScrollReveal className="lg:col-span-3" delayMs={60}>
             <RecruiterView insight={insight} />
-          </div>
+          </DashboardScrollReveal>
         </div>
       </div>
       )}
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Delete project?"
+        description={
+          deleteTarget
+            ? `"${deleteTarget.title}" will be permanently removed. This action cannot be undone.`
+            : ""
+        }
+        confirmLabel="Delete Project"
+        loadingLabel="Deleting..."
+        loading={isDeleting}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => {
+          if (!isDeleting) setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }

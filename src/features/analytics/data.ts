@@ -1,7 +1,9 @@
 import {
+  addDaysLocal,
   computeStudyStreak,
   getCurrentWeekDatesLocal,
   getLocalDateString,
+  getMondayOfWeekLocal,
 } from "@/lib/date-only";
 import { MASTERY_WEIGHTS } from "../roadmap/types";
 import type { RoadmapCategory } from "../roadmap/types";
@@ -26,6 +28,15 @@ export interface DailyActivity {
   date: string;
   hours: number;
 }
+
+export interface StudyActivityPoint {
+  day: string;
+  date: string;
+  hours: number;
+  sessionCount: number;
+}
+
+export type StudyActivityRange = 7 | 30;
 
 export interface DifficultTopic {
   topicName: string;
@@ -89,17 +100,71 @@ export function getCategoryHours(sessions: StudySession[]): CategoryHours[] {
   });
 }
 
-export function getWeeklyActivity(sessions: StudySession[]): DailyActivity[] {
-  const sessionHoursByDate = new Map<string, number>();
+function buildSessionMaps(sessions: StudySession[]) {
+  const hoursByDate = new Map<string, number>();
+  const countByDate = new Map<string, number>();
+
   for (const s of sessions) {
-    sessionHoursByDate.set(s.date, (sessionHoursByDate.get(s.date) ?? 0) + s.hoursStudied);
+    hoursByDate.set(s.date, (hoursByDate.get(s.date) ?? 0) + s.hoursStudied);
+    countByDate.set(s.date, (countByDate.get(s.date) ?? 0) + 1);
   }
+
+  return { hoursByDate, countByDate };
+}
+
+export function getWeeklySessionCount(sessions: StudySession[]): number {
+  const monday = getMondayOfWeekLocal();
+  const sunday = addDaysLocal(monday, 6);
+  const mondayStr = getLocalDateString(monday);
+  const sundayStr = getLocalDateString(sunday);
+
+  return sessions.filter(
+    (session) => session.date >= mondayStr && session.date <= sundayStr,
+  ).length;
+}
+
+export function getWeeklyActivity(sessions: StudySession[]): DailyActivity[] {
+  const { hoursByDate } = buildSessionMaps(sessions);
 
   return getCurrentWeekDatesLocal().map(({ day, date }) => ({
     day,
     date,
-    hours: parseFloat((sessionHoursByDate.get(date) ?? 0).toFixed(1)),
+    hours: parseFloat((hoursByDate.get(date) ?? 0).toFixed(1)),
   }));
+}
+
+export function getStudyActivityTrend(
+  sessions: StudySession[],
+  range: StudyActivityRange = 7,
+): StudyActivityPoint[] {
+  const { hoursByDate, countByDate } = buildSessionMaps(sessions);
+
+  if (range === 7) {
+    return getCurrentWeekDatesLocal().map(({ day, date }) => ({
+      day,
+      date,
+      hours: parseFloat((hoursByDate.get(date) ?? 0).toFixed(1)),
+      sessionCount: countByDate.get(date) ?? 0,
+    }));
+  }
+
+  const today = new Date();
+  const points: StudyActivityPoint[] = [];
+
+  for (let offset = 29; offset >= 0; offset--) {
+    const date = addDaysLocal(today, -offset);
+    const dateStr = getLocalDateString(date);
+    const dayLabel = String(date.getDate());
+
+    points.push({
+      day: dayLabel,
+      date: dateStr,
+      hours: parseFloat((hoursByDate.get(dateStr) ?? 0).toFixed(1)),
+      sessionCount: countByDate.get(dateStr) ?? 0,
+    });
+  }
+
+  return points;
 }
 
 export function getDifficultTopics(sessions: StudySession[]): DifficultTopic[] {

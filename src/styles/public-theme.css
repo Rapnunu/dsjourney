@@ -1,0 +1,56 @@
+/* Shared dark premium tokens for public landing + auth pages */
+
+.public-page {
+  --pub-bg: #070b12;
+  --pub-bg-secondary: #0a1019;
+  --pub-surface: #111827;
+  --pub-surface-elevated: #161f30;
+  --pub-surface-hover: #1c2738;
+  --pub-text: #ffffff;
+  --pub-text-secondary: #94a3b8;
+  --pub-text-muted: #64748b;
+  --pub-border: rgba(148, 163, 184, 0.14);
+  --pub-border-strong: rgba(148, 163, 184, 0.24);
+  --pub-teal: #18b8c6;
+  --pub-teal-hover: #15a3b0;
+  --pub-teal-soft: rgba(24, 184, 198, 0.12);
+  --pub-blue: #3578e5;
+  --pub-blue-hover: #2f6ed1;
+  --pub-blue-soft: rgba(53, 120, 229, 0.12);
+  --pub-navy: #12304a;
+  --pub-dark: #0d1b2a;
+  --pub-error-bg: rgba(239, 68, 68, 0.1);
+  --pub-error-border: rgba(239, 68, 68, 0.3);
+  --pub-error-text: #fca5a5;
+  --pub-success-bg: rgba(34, 197, 94, 0.1);
+  --pub-success-border: rgba(34, 197, 94, 0.3);
+  --pub-success-text: #86efac;
+  --pub-radius-sm: 8px;
+  --pub-radius-md: 12px;
+  --pub-radius-lg: 16px;
+  --pub-radius-pill: 999px;
+  --pub-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --pub-shadow-md: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --pub-max-width: 76rem;
+  --pub-font: var(--font-inter, system-ui, sans-serif);
+  --pub-display-size: clamp(2.75rem, 6vw, 4.25rem);
+  --pub-section-size: clamp(1.75rem, 3vw, 2.35rem);
+  color: var(--pub-text);
+  font-family: var(--pub-font);
+  background: var(--pub-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.public-page :where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--pub-teal);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-page :where(*) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

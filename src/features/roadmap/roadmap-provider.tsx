@@ -15,6 +15,10 @@ import {
 } from "@/lib/storage";
 import type { RoadmapProgressRecord } from "@/lib/repositories/roadmap";
 import {
+  getUserFriendlyApiError,
+  type UserFriendlyError,
+} from "@/lib/api/user-friendly-error";
+import {
   bulkImportRoadmapProgressRequest,
   deleteRoadmapProgressOverrideRequest,
   fetchRoadmapProgress,
@@ -30,7 +34,8 @@ import type {
 interface RoadmapContextType {
   roadmap: RoadmapCategory[];
   isHydrated: boolean;
-  error: string | null;
+  error: UserFriendlyError | null;
+  reload: () => Promise<void>;
   updateMastery: (
     topicId: string,
     mastery: MasteryLevel,
@@ -96,21 +101,16 @@ function getLegacyProgress(roadmap: RoadmapCategory[]) {
   );
 }
 
-function getErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error !== "object" || error === null) return fallback;
-
-  const candidate = error as Record<string, unknown>;
-  const message =
-    typeof candidate.message === "string" ? candidate.message : fallback;
-
-  return message;
-}
-
 export function RoadmapProvider({ children }: { children: ReactNode }) {
   const [roadmap, setRoadmap] = useState<RoadmapCategory[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<UserFriendlyError | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const reload = useCallback(async () => {
+    setIsHydrated(false);
+    setReloadToken((token) => token + 1);
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -141,12 +141,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
             } catch (migrationError) {
               if (isActive) {
                 setRoadmap(stored.length > 0 ? stored : mergeProgress([]));
-                setError(
-                  getErrorMessage(
-                    migrationError,
-                    "Unable to migrate local roadmap progress.",
-                  ),
-                );
+                setError(getUserFriendlyApiError(migrationError, "load"));
               }
               return;
             }
@@ -160,7 +155,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
       } catch (loadError) {
         if (isActive) {
           setRoadmap(mergeProgress([]));
-          setError(getErrorMessage(loadError, "Unable to load roadmap progress."));
+          setError(getUserFriendlyApiError(loadError, "load"));
         }
       } finally {
         if (isActive) setIsHydrated(true);
@@ -171,7 +166,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [reloadToken]);
 
   const updateMastery = useCallback(
     async (topicId: string, mastery: MasteryLevel) => {
@@ -209,10 +204,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
         );
         setError(null);
         return true;
-      } catch (operationError) {
-        setError(
-          getErrorMessage(operationError, "Unable to update roadmap mastery."),
-        );
+      } catch {
         return false;
       }
     },
@@ -221,7 +213,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
 
   return (
     <RoadmapContext.Provider
-      value={{ roadmap, isHydrated, error, updateMastery }}
+      value={{ roadmap, isHydrated, error, reload, updateMastery }}
     >
       {children}
     </RoadmapContext.Provider>

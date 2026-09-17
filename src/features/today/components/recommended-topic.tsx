@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Clock, Lightbulb, ArrowRight } from "lucide-react";
+import { ArrowRight, Clock, Lightbulb } from "lucide-react";
+import {
+  dashboardBtnPrimary,
+  dashboardCard,
+  DashboardMagnet,
+  DashboardScrollReveal,
+  EmptyState,
+} from "@/components/dashboard";
 import type { RecommendedTopic as RecommendedTopicType } from "../data";
 
 interface RecommendedTopicProps {
@@ -11,21 +18,26 @@ interface RecommendedTopicProps {
 export function RecommendedTopic({ topic }: RecommendedTopicProps) {
   if (!topic) {
     return (
-      <div className="rounded-xl border border-dashed border-border-primary bg-bg-surface/50 p-5">
-        <h3 className="text-sm font-semibold text-text-primary mb-2">Recommended Next</h3>
-        <p className="text-sm text-text-muted">All topics mastered! 🎉</p>
-      </div>
+      <EmptyState
+        title="Recommended Next"
+        description="All topics mastered — great work."
+      />
     );
   }
 
   return (
-    <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5">
-      <h3 className="text-sm font-semibold text-text-muted mb-3">Recommended Next</h3>
+    <DashboardScrollReveal delayMs={40}>
+    <div className={`${dashboardCard} dashboard-card-hover p-5`}>
+      <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
+        Recommended Next
+      </p>
 
-      <p className="text-lg font-semibold text-text-primary mb-2">{topic.topicName}</p>
+      <h3 className="mt-2 text-xl font-semibold text-text-primary">
+        {topic.topicName}
+      </h3>
 
-      <div className="flex items-center gap-3 mb-3 flex-wrap">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-accent-muted text-accent">
+      <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+        <span className="rounded-md bg-bg-elevated px-2 py-0.5 text-xs font-medium text-brand-teal">
           {topic.categoryName}
         </span>
         <span className="inline-flex items-center gap-1 text-xs text-text-muted">
@@ -34,20 +46,18 @@ export function RecommendedTopic({ topic }: RecommendedTopicProps) {
         </span>
       </div>
 
-      <div className="flex items-start gap-2 mb-4 px-3 py-2 rounded-lg bg-bg-primary/50">
-        <Lightbulb size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
+      <div className="mt-4 flex items-start gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2.5">
+        <Lightbulb size={14} className="mt-0.5 shrink-0 text-warning" />
         <p className="text-sm text-text-secondary">{topic.reason}</p>
       </div>
 
-      <Link
-        href="/study-sessions"
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
-          bg-accent text-white hover:bg-accent-hover
-          focus-ring transition-colors duration-150"
-      >
-        Start Study Session
-        <ArrowRight size={15} />
-      </Link>
+      <DashboardMagnet className="mt-5 inline-block">
+        <Link href="/study-sessions" className={dashboardBtnPrimary}>
+          Start Study Session
+          <ArrowRight size={15} />
+        </Link>
+      </DashboardMagnet>
     </div>
+    </DashboardScrollReveal>
   );
 }

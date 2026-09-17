@@ -55,7 +55,7 @@ export function TopicRow({ topic, onMasteryChange, isLast }: TopicRowProps) {
               href={topic.resourceLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent-hover transition-colors"
+              className="inline-flex items-center gap-1 text-xs text-brand-teal transition-colors hover:text-brand-teal/80"
             >
               <ExternalLink size={12} />
               Resource

@@ -53,20 +53,23 @@ export function WelcomeHeader() {
   const mounted = dateStr.length > 0;
 
   return (
-    <div className="mb-8">
-      <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-text-primary">
+    <header className="mb-8">
+      <h1 className="text-[1.75rem] font-semibold tracking-tight text-text-primary sm:text-[2rem]">
         <span
           className={`inline-block transition-opacity duration-300 ${mounted ? "opacity-100" : "opacity-0"}`}
         >
           {greeting},{" "}
         </span>
-        <span className="text-accent">Raphael</span>
+        <span className="text-brand-teal">Raphael</span>
       </h1>
       <p
         className={`mt-1 text-sm text-text-secondary transition-opacity duration-300 ${mounted ? "opacity-100" : "opacity-0"}`}
       >
         {dateStr || "\u00A0"}
       </p>
-    </div>
+      <p className="mt-2 text-sm text-text-muted">
+        Here&apos;s what to focus on and complete today.
+      </p>
+    </header>
   );
 }

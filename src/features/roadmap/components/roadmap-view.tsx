@@ -2,8 +2,12 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { Search, X } from "lucide-react";
+import CountUp from "@/components/react-bits/CountUp";
 import { mockRoadmapData } from "../data";
 import { useRoadmapStore } from "../roadmap-provider";
+import { DashboardScrollReveal } from "@/components/dashboard";
+import { ProviderErrorBanner } from "@/components/ui/provider-error-banner";
+import { showFriendlyError, showSuccessToast } from "@/lib/toast";
 import { CategoryCard } from "./category-card";
 import type { MasteryLevel } from "../types";
 import {
@@ -26,6 +30,7 @@ export function RoadmapView() {
     roadmap: categories,
     isHydrated,
     error,
+    reload,
     updateMastery,
   } = useRoadmapStore();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
@@ -47,10 +52,19 @@ export function RoadmapView() {
   }, []);
 
   const handleMasteryChange = useCallback(
-    (topicId: string, level: MasteryLevel) => {
-      updateMastery(topicId, level);
+    async (topicId: string, level: MasteryLevel) => {
+      const saved = await updateMastery(topicId, level);
+      if (saved) {
+        showSuccessToast("Roadmap progress updated");
+      } else {
+        showFriendlyError(new Error("update failed"), "update", {
+          title: "Couldn't save changes",
+          description:
+            "Something went wrong while updating roadmap progress. Please try again.",
+        });
+      }
     },
-    [updateMastery]
+    [updateMastery],
   );
 
   // Filter categories/topics by search + mastery filter
@@ -129,27 +143,26 @@ export function RoadmapView() {
   return (
     <div className="space-y-6">
       {error && (
-        <div
-          role="alert"
-          className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
-        >
-          {error}
-        </div>
+        <ProviderErrorBanner
+          title={error.title}
+          description={error.description}
+          onRetry={() => void reload()}
+        />
       )}
       {/* Summary stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {masteryOrder.map((level) => {
           const config = MASTERY_CONFIG[level];
           return (
             <div
               key={level}
-              className="rounded-lg border border-border-subtle bg-bg-surface/50 px-4 py-3"
+              className="rounded-[10px] border border-border-subtle bg-bg-surface px-4 py-3"
             >
-              <p className="text-xs text-text-muted mb-1">{config.label}</p>
+              <p className="mb-1 text-xs text-text-muted">{config.label}</p>
               <p
                 className={`text-2xl font-semibold tabular-nums ${config.activeColor}`}
               >
-                {overallStats.counts[level]}
+                <CountUp to={overallStats.counts[level]} duration={0.9} />
               </p>
               <p className="text-xs text-text-muted mt-0.5">
                 of {overallStats.total} topics
@@ -158,25 +171,23 @@ export function RoadmapView() {
           );
         })}
 
-        {/* Overall readiness */}
-        <div className="rounded-lg border border-border-subtle bg-bg-surface/50 px-4 py-3">
-          <p className="text-xs text-text-muted mb-1">Readiness</p>
-          <p className="text-2xl font-semibold tabular-nums text-accent">
-            {overallStats.readiness}%
+        <div className="rounded-[10px] border border-border-subtle bg-bg-surface px-4 py-3">
+          <p className="mb-1 text-xs text-text-muted">Readiness</p>
+          <p className="text-2xl font-semibold tabular-nums text-brand-teal">
+            <CountUp to={overallStats.readiness} suffix="%" duration={1} />
           </p>
-          <p className="text-xs text-text-muted mt-0.5">overall</p>
+          <p className="mt-0.5 text-xs text-text-muted">overall</p>
         </div>
 
-        {/* Remaining hours */}
-        <div className="rounded-lg border border-border-subtle bg-bg-surface/50 px-4 py-3">
-          <p className="text-xs text-text-muted mb-1">Remaining</p>
+        <div className="rounded-[10px] border border-border-subtle bg-bg-surface px-4 py-3">
+          <p className="mb-1 text-xs text-text-muted">Remaining</p>
           <div className="flex items-baseline gap-1">
             <p className="text-2xl font-semibold tabular-nums text-text-primary">
-              {overallStats.remainingHours}
+              <CountUp to={overallStats.remainingHours} decimals={1} duration={1} />
             </p>
             <span className="text-sm text-text-muted">hrs</span>
           </div>
-          <p className="text-xs text-text-muted mt-0.5">
+          <p className="mt-0.5 text-xs text-text-muted">
             of {overallStats.totalHours}h total
           </p>
         </div>
@@ -195,9 +206,9 @@ export function RoadmapView() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search topics..."
-            className="w-full h-9 pl-9 pr-9 rounded-lg border border-border-primary bg-bg-surface/50 text-sm text-text-primary
+            className="h-9 w-full rounded-lg border border-border-strong bg-bg-input pl-9 pr-9 text-sm text-text-primary
               placeholder:text-text-muted
-              focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent
+              focus:border-brand-teal focus:outline-none focus:ring-1 focus:ring-brand-teal
               transition-colors duration-150"
           />
           {searchQuery && (
@@ -241,14 +252,15 @@ export function RoadmapView() {
       {/* Category cards */}
       <div className="space-y-3">
         {filteredCategories.length > 0 ? (
-          filteredCategories.map((category) => (
-            <CategoryCard
-              key={category.id}
-              category={category}
-              isExpanded={expandedIds.has(category.id)}
-              onToggle={() => toggleCategory(category.id)}
-              onMasteryChange={handleMasteryChange}
-            />
+          filteredCategories.map((category, index) => (
+            <DashboardScrollReveal key={category.id} delayMs={index * 40}>
+              <CategoryCard
+                category={category}
+                isExpanded={expandedIds.has(category.id)}
+                onToggle={() => toggleCategory(category.id)}
+                onMasteryChange={handleMasteryChange}
+              />
+            </DashboardScrollReveal>
           ))
         ) : (
           <div className="rounded-xl border border-dashed border-border-primary bg-bg-surface/50 p-12 text-center">
@@ -294,7 +306,7 @@ function FilterPill({
           isActive
             ? activeColor && activeBg
               ? `${activeBg} ${activeColor} ring-1 ring-current/20`
-              : "bg-accent-muted text-accent ring-1 ring-accent/20"
+              : "bg-accent-muted text-brand-teal ring-1 ring-brand-teal/20"
             : "text-text-muted hover:text-text-secondary hover:bg-bg-surface-hover"
         }
       `}

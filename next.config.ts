@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const isDevelopment = process.env.NODE_ENV === "development";
 
 /**
- * Content-Security-Policy directives for DS Prep Tracker.
+ * Content-Security-Policy directives for DSJourney.
  *
  * default-src 'self' — fallback for unspecified resource types
  * base-uri 'self' — restrict <base> tag targets

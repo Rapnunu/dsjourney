@@ -26,20 +26,18 @@ export function RecruiterView({ insight }: RecruiterViewProps) {
 
   const getScoreColor = () => {
     if (insight.portfolioStrength >= 75) return "text-emerald-400";
-    if (insight.portfolioStrength >= 50) return "text-accent";
+    if (insight.portfolioStrength >= 50) return "text-brand-teal";
     return "text-amber-400";
   };
 
   const getBarColor = () => {
-    if (insight.portfolioStrength >= 75)
-      return "bg-gradient-to-r from-emerald-500 to-teal-400";
-    if (insight.portfolioStrength >= 50)
-      return "bg-gradient-to-r from-indigo-500 to-purple-400";
-    return "bg-gradient-to-r from-amber-500 to-orange-400";
+    if (insight.portfolioStrength >= 75) return "bg-success";
+    if (insight.portfolioStrength >= 50) return "bg-brand-blue";
+    return "bg-warning";
   };
 
   return (
-    <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5">
+    <div className="rounded-[10px] border border-border-subtle bg-bg-surface p-5">
       <div className="flex items-center gap-2 mb-5">
         <Eye size={16} className="text-violet-400" />
         <h3 className="text-sm font-semibold text-text-primary">

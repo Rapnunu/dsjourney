@@ -14,6 +14,10 @@ import {
   isStoredSessionsMigrationComplete,
 } from "@/lib/storage";
 import {
+  getUserFriendlyApiError,
+  type UserFriendlyError,
+} from "@/lib/api/user-friendly-error";
+import {
   bulkImportSessionsRequest,
   createSessionRequest,
   deleteSessionRequest,
@@ -27,7 +31,8 @@ type SessionInput = Omit<StudySession, "id" | "createdAt">;
 interface SessionContextType {
   sessions: StudySession[];
   isHydrated: boolean;
-  error: string | null;
+  error: UserFriendlyError | null;
+  reload: () => Promise<void>;
   addSession: (data: SessionInput) => Promise<boolean>;
   updateSession: (id: string, data: SessionInput) => Promise<boolean>;
   deleteSession: (id: string) => Promise<boolean>;
@@ -42,21 +47,16 @@ function sortSessions(sessions: StudySession[]): StudySession[] {
   );
 }
 
-function getErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error !== "object" || error === null) return fallback;
-
-  const candidate = error as Record<string, unknown>;
-  const message =
-    typeof candidate.message === "string" ? candidate.message : fallback;
-
-  return message;
-}
-
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<UserFriendlyError | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const reload = useCallback(async () => {
+    setIsHydrated(false);
+    setReloadToken((token) => token + 1);
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -86,7 +86,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       } catch (loadError) {
         if (isActive) {
           setSessions([]);
-          setError(getErrorMessage(loadError, "Unable to load study sessions."));
+          setError(getUserFriendlyApiError(loadError, "load"));
         }
       } finally {
         if (isActive) setIsHydrated(true);
@@ -97,7 +97,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [reloadToken]);
 
   const addSession = useCallback(async (data: SessionInput) => {
     try {
@@ -105,8 +105,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setSessions((previous) => sortSessions([created, ...previous]));
       setError(null);
       return true;
-    } catch (operationError) {
-      setError(getErrorMessage(operationError, "Unable to add the study session."));
+    } catch {
       return false;
     }
   }, []);
@@ -121,8 +120,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       );
       setError(null);
       return true;
-    } catch (operationError) {
-      setError(getErrorMessage(operationError, "Unable to update the study session."));
+    } catch {
       return false;
     }
   }, []);
@@ -133,15 +131,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setSessions((previous) => previous.filter((session) => session.id !== id));
       setError(null);
       return true;
-    } catch (operationError) {
-      setError(getErrorMessage(operationError, "Unable to delete the study session."));
+    } catch {
       return false;
     }
   }, []);
 
   return (
     <SessionContext.Provider
-      value={{ sessions, isHydrated, error, addSession, updateSession, deleteSession }}
+      value={{
+        sessions,
+        isHydrated,
+        error,
+        reload,
+        addSession,
+        updateSession,
+        deleteSession,
+      }}
     >
       {children}
     </SessionContext.Provider>

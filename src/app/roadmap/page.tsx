@@ -7,7 +7,7 @@ export default function RoadmapPage() {
     <>
       <PageHeader
         title="Roadmap"
-        subtitle="Your learning path and topic progression"
+        subtitle="Build your Data Science foundation step by step."
         icon={<Map size={22} />}
       />
       <RoadmapView />

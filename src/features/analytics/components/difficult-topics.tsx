@@ -8,15 +8,24 @@ interface DifficultTopicsProps {
 
 export function DifficultTopics({ topics }: DifficultTopicsProps) {
   return (
-    <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5">
+    <div className="rounded-[10px] border border-border-subtle bg-bg-surface p-5">
       <div className="flex items-center gap-2 mb-4">
-        <AlertTriangle size={16} className="text-amber-400" />
+        <AlertTriangle size={16} className="text-brand-teal" />
         <h3 className="text-sm font-semibold text-text-primary">
           Difficult Topics
         </h3>
       </div>
 
-      {/* Table */}
+      {topics.length === 0 ? (
+        <div className="py-8 text-center">
+          <p className="text-sm text-text-secondary">
+            No difficult topics identified yet.
+          </p>
+          <p className="mt-1 text-xs text-text-muted">
+            Difficulty insights will appear as you log study sessions.
+          </p>
+        </div>
+      ) : (
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -62,6 +71,7 @@ export function DifficultTopics({ topics }: DifficultTopicsProps) {
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

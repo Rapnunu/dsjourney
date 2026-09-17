@@ -4,7 +4,7 @@ import {
   getLocalDateString,
   getMondayOfWeekLocal,
 } from "@/lib/date-only";
-import { MASTERY_WEIGHTS } from "../roadmap/types";
+import { MASTERY_CONFIG, MASTERY_WEIGHTS } from "../roadmap/types";
 import type { MasteryLevel, RoadmapCategory } from "../roadmap/types";
 import type { StudySession } from "../sessions/types";
 
@@ -35,6 +35,50 @@ export interface TodayGoal {
   id: string;
   label: string;
   completed: boolean;
+}
+
+export interface MasteryDistributionSegment {
+  level: MasteryLevel;
+  label: string;
+  count: number;
+  percentage: number;
+}
+
+const MASTERY_LEVEL_ORDER: MasteryLevel[] = [
+  "not_started",
+  "learning",
+  "practiced",
+  "mastered",
+];
+
+export function getMasteryDistribution(
+  roadmap: RoadmapCategory[],
+): MasteryDistributionSegment[] {
+  const allTopics = roadmap.flatMap((category) => category.topics);
+  const total = allTopics.length;
+
+  return MASTERY_LEVEL_ORDER.map((level) => {
+    const count = allTopics.filter((topic) => topic.mastery === level).length;
+    return {
+      level,
+      label: MASTERY_CONFIG[level].label,
+      count,
+      percentage: total > 0 ? (count / total) * 100 : 0,
+    };
+  });
+}
+
+export function getRecentSessions(
+  sessions: StudySession[],
+  count = 3,
+): StudySession[] {
+  return [...sessions]
+    .sort((a, b) => {
+      const dateCompare = b.date.localeCompare(a.date);
+      if (dateCompare !== 0) return dateCompare;
+      return b.createdAt.localeCompare(a.createdAt);
+    })
+    .slice(0, count);
 }
 
 export function computeReadiness(roadmap: RoadmapCategory[]): number {

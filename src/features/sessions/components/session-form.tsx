@@ -1,32 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Save } from "lucide-react";
+import { LoaderCircle, Plus, Save } from "lucide-react";
 import { getLocalDateString } from "@/lib/date-only";
+import { dashboardInput } from "@/components/dashboard";
+import { DashboardMagnet } from "@/components/dashboard";
+import { FieldError } from "@/components/ui/field-error";
+import { TopicSelect } from "@/components/ui/topic-select";
 import type { StudySession, TopicOption } from "../types";
 import { DifficultyRating } from "./difficulty-rating";
 
 interface SessionFormProps {
   topicOptions: TopicOption[];
-  onSubmit: (session: Omit<StudySession, "id" | "createdAt">) => void;
+  onSubmit: (session: Omit<StudySession, "id" | "createdAt">) => Promise<boolean>;
   onCancel?: () => void;
   editingSession?: StudySession | null;
 }
 
-function groupByCategory(options: TopicOption[]): Record<string, TopicOption[]> {
-  const groups: Record<string, TopicOption[]> = {};
-  options.forEach((opt) => {
-    if (!groups[opt.category]) groups[opt.category] = [];
-    groups[opt.category].push(opt);
-  });
-  return groups;
-}
-
 interface SessionFormFieldsProps {
   topicOptions: TopicOption[];
-  onSubmit: (session: Omit<StudySession, "id" | "createdAt">) => void;
+  onSubmit: (session: Omit<StudySession, "id" | "createdAt">) => Promise<boolean>;
   onCancel?: () => void;
   editingSession: StudySession | null;
+}
+
+interface FieldErrors {
+  topicId?: string;
+  hoursStudied?: string;
+  date?: string;
 }
 
 function SessionFormFields({
@@ -43,6 +44,8 @@ function SessionFormFields({
     editingSession?.difficultyRating ?? 3,
   );
   const [notes, setNotes] = useState(editingSession?.notes ?? "");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function resetForm() {
     setTopicId("");
@@ -50,16 +53,33 @@ function SessionFormFields({
     setHoursStudied(1);
     setDifficultyRating(3);
     setNotes("");
+    setFieldErrors({});
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  function validate(): FieldErrors {
+    const errors: FieldErrors = {};
+    if (!topicId) errors.topicId = "Please select a topic.";
+    if (!date) errors.date = "Study date is required.";
+    if (hoursStudied <= 0 || hoursStudied > 24) {
+      errors.hoursStudied = "Hours must be between 0.5 and 24.";
+    }
+    return errors;
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!topicId || hoursStudied <= 0) return;
+    const errors = validate();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
 
     const selectedTopic = topicOptions.find((t) => t.id === topicId);
-    if (!selectedTopic) return;
+    if (!selectedTopic) {
+      setFieldErrors({ topicId: "Please select a valid topic." });
+      return;
+    }
 
-    onSubmit({
+    setIsSubmitting(true);
+    const saved = await onSubmit({
       topicId,
       topicName: selectedTopic.name,
       categoryName: selectedTopic.category,
@@ -68,19 +88,19 @@ function SessionFormFields({
       difficultyRating,
       notes,
     });
+    setIsSubmitting(false);
 
-    if (!isEditing) resetForm();
+    if (saved && !isEditing) resetForm();
   }
 
-  const grouped = groupByCategory(topicOptions);
-
-  const inputClasses = "w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-colors duration-150";
-  const labelClasses = "text-xs font-medium text-text-secondary mb-1.5 block";
+  const labelClasses = "mb-1.5 block text-xs font-medium text-text-secondary";
+  const inputErrorClass = (hasError: boolean) =>
+    hasError ? "border-danger focus:border-danger focus:ring-danger/40" : "";
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-xl border border-border-primary bg-bg-surface/50 p-5"
+      className="rounded-[10px] border border-border-subtle bg-bg-surface p-5"
     >
       <h3 className="text-sm font-semibold text-text-primary mb-4">
         {isEditing ? "Edit Session" : "Log Study Session"}
@@ -89,22 +109,15 @@ function SessionFormFields({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="session-topic" className={labelClasses}>Topic</label>
-          <select
+          <TopicSelect
             id="session-topic"
             value={topicId}
-            onChange={(e) => setTopicId(e.target.value)}
-            className={inputClasses}
-            required
-          >
-            <option value="" disabled>Select a topic...</option>
-            {Object.entries(grouped).map(([category, topics]) => (
-              <optgroup key={category} label={category}>
-                {topics.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
+            onValueChange={setTopicId}
+            options={topicOptions}
+            disabled={isSubmitting}
+            error={Boolean(fieldErrors.topicId)}
+          />
+          <FieldError message={fieldErrors.topicId} />
         </div>
 
         <div>
@@ -114,9 +127,11 @@ function SessionFormFields({
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className={`${inputClasses} [color-scheme:dark]`}
+            className={`${dashboardInput} [color-scheme:dark] ${inputErrorClass(Boolean(fieldErrors.date))}`}
+            disabled={isSubmitting}
             required
           />
+          <FieldError message={fieldErrors.date} />
         </div>
 
         <div>
@@ -129,9 +144,11 @@ function SessionFormFields({
             step={0.5}
             value={hoursStudied}
             onChange={(e) => setHoursStudied(parseFloat(e.target.value) || 0)}
-            className={inputClasses}
+            className={`${dashboardInput} ${inputErrorClass(Boolean(fieldErrors.hoursStudied))}`}
+            disabled={isSubmitting}
             required
           />
+          <FieldError message={fieldErrors.hoursStudied} />
         </div>
 
         <div>
@@ -153,28 +170,41 @@ function SessionFormFields({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="What did you learn? Any struggles?"
-            className={`${inputClasses} resize-none`}
+            className={`${dashboardInput} resize-none`}
+            disabled={isSubmitting}
           />
         </div>
       </div>
 
       <div className="flex items-center gap-3 mt-4">
-        <button
-          type="submit"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
-            bg-accent text-white hover:bg-accent-hover
-            focus-ring transition-colors duration-150 cursor-pointer"
-        >
-          {isEditing ? <Save size={15} /> : <Plus size={15} />}
-          {isEditing ? "Update Session" : "Log Session"}
-        </button>
+        <DashboardMagnet>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex min-w-[9rem] cursor-pointer items-center justify-center gap-2 rounded-lg bg-brand-teal px-4 py-2.5 text-sm font-semibold text-[#071016] transition-colors hover:bg-brand-teal/90 focus-ring disabled:opacity-60"
+          >
+            {isSubmitting ? (
+              <LoaderCircle size={15} className="animate-spin" />
+            ) : isEditing ? (
+              <Save size={15} />
+            ) : (
+              <Plus size={15} />
+            )}
+            {isSubmitting
+              ? isEditing
+                ? "Saving..."
+                : "Logging..."
+              : isEditing
+                ? "Update Session"
+                : "Log Session"}
+          </button>
+        </DashboardMagnet>
         {isEditing && onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-text-secondary
-              hover:text-text-primary hover:bg-bg-surface-hover
-              focus-ring transition-colors duration-150 cursor-pointer"
+            disabled={isSubmitting}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover focus-ring transition-colors duration-150 cursor-pointer disabled:opacity-60"
           >
             Cancel
           </button>

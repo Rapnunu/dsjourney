@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { SidebarProvider } from "@/components/layout/sidebar-context";
-import { SessionProvider } from "@/features/sessions/session-provider";
-import { RoadmapProvider } from "@/features/roadmap/roadmap-provider";
-import { PortfolioProvider } from "@/features/portfolio/portfolio-provider";
 import { AppShell } from "@/components/layout/app-shell";
+import { AppToaster } from "@/components/ui/app-toaster";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -13,8 +11,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "DS Prep Tracker",
-  description: "Track your data science interview preparation progress",
+  title: {
+    default: "DSJourney",
+    template: "%s | DSJourney",
+  },
+  description:
+    "Track your Data Science learning journey, study progress, portfolio, analytics, and career readiness.",
 };
 
 export default function RootLayout({
@@ -26,16 +28,10 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} dark h-full antialiased`}>
       <body className="h-full">
         <SidebarProvider>
-          <SessionProvider>
-            <RoadmapProvider>
-              <PortfolioProvider>
-                <AppShell>{children}</AppShell>
-              </PortfolioProvider>
-            </RoadmapProvider>
-          </SessionProvider>
+          <AppShell>{children}</AppShell>
+          <AppToaster />
         </SidebarProvider>
       </body>
     </html>
   );
 }
-

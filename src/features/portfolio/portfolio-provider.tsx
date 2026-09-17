@@ -14,6 +14,10 @@ import {
   isStoredPortfolioMigrationComplete,
 } from "@/lib/storage";
 import {
+  getUserFriendlyApiError,
+  type UserFriendlyError,
+} from "@/lib/api/user-friendly-error";
+import {
   bulkImportPortfolioProjectsRequest,
   createPortfolioProjectRequest,
   deletePortfolioProjectRequest,
@@ -27,7 +31,8 @@ export type ProjectInput = Omit<Project, "id">;
 interface PortfolioContextType {
   projects: Project[];
   isHydrated: boolean;
-  error: string | null;
+  error: UserFriendlyError | null;
+  reload: () => Promise<void>;
   addProject: (project: ProjectInput) => Promise<boolean>;
   updateProject: (id: string, project: ProjectInput) => Promise<boolean>;
   deleteProject: (id: string) => Promise<boolean>;
@@ -41,21 +46,16 @@ function sortProjects(projects: Project[]): Project[] {
   return [...projects].sort((a, b) => b.startDate.localeCompare(a.startDate));
 }
 
-function getErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error !== "object" || error === null) return fallback;
-
-  const candidate = error as Record<string, unknown>;
-  const message =
-    typeof candidate.message === "string" ? candidate.message : fallback;
-
-  return message;
-}
-
 export function PortfolioProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<UserFriendlyError | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const reload = useCallback(async () => {
+    setIsHydrated(false);
+    setReloadToken((token) => token + 1);
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -88,9 +88,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       } catch (loadError) {
         if (isActive) {
           setProjects([]);
-          setError(
-            getErrorMessage(loadError, "Unable to load portfolio projects."),
-          );
+          setError(getUserFriendlyApiError(loadError, "load"));
         }
       } finally {
         if (isActive) setIsHydrated(true);
@@ -101,7 +99,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [reloadToken]);
 
   const addProject = useCallback(async (project: ProjectInput) => {
     try {
@@ -109,8 +107,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       setProjects((previous) => sortProjects([created, ...previous]));
       setError(null);
       return true;
-    } catch (operationError) {
-      setError(getErrorMessage(operationError, "Unable to add the project."));
+    } catch {
       return false;
     }
   }, []);
@@ -125,8 +122,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       );
       setError(null);
       return true;
-    } catch (operationError) {
-      setError(getErrorMessage(operationError, "Unable to update the project."));
+    } catch {
       return false;
     }
   }, []);
@@ -139,8 +135,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       );
       setError(null);
       return true;
-    } catch (operationError) {
-      setError(getErrorMessage(operationError, "Unable to delete the project."));
+    } catch {
       return false;
     }
   }, []);
@@ -151,6 +146,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         projects,
         isHydrated,
         error,
+        reload,
         addProject,
         updateProject,
         deleteProject,

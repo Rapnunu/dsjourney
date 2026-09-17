@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getLocalDateString } from "@/lib/date-only";
+import { dashboardCard } from "@/components/dashboard";
 import type { DailyActivity } from "../data";
 
 interface WeeklyActivityProps {
@@ -18,40 +19,51 @@ export function WeeklyActivity({ days }: WeeklyActivityProps) {
   }, []);
 
   const maxHours = Math.max(...days.map((d) => d.hours), 1);
+  const hasWeeklyActivity = days.some((d) => d.hours > 0);
 
   return (
-    <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5">
-      <div className="flex items-center justify-between mb-5">
+    <div className={`${dashboardCard} p-5`}>
+      <div className="mb-5 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-text-primary">
           Weekly Activity
         </h3>
         <span className="text-xs text-text-muted">This week</span>
       </div>
 
-      <div className="flex items-end gap-2 h-40">
+      <div className="relative flex h-40 items-end gap-2">
+        {!hasWeeklyActivity && (
+          <div className="pointer-events-none absolute inset-x-0 top-1/2 z-10 -translate-y-1/2 px-2 text-center">
+            <p className="text-sm text-text-secondary">
+              No study activity this week.
+            </p>
+            <p className="mt-1 text-xs text-text-muted">
+              Log a session to start seeing your weekly pattern.
+            </p>
+          </div>
+        )}
         {days.map((day) => {
           const heightPct = maxHours > 0 ? (day.hours / maxHours) * 100 : 0;
           const isToday = day.date === todayDate;
           const hasActivity = day.hours > 0;
 
           return (
-            <div key={day.day} className="flex-1 flex flex-col items-center gap-2">
+            <div key={day.day} className="flex flex-1 flex-col items-center gap-2">
               <span
-                className={`text-xs tabular-nums font-medium transition-opacity duration-500 ${
+                className={`text-xs font-medium tabular-nums transition-opacity duration-500 ${
                   animate && hasActivity ? "opacity-100" : "opacity-0"
-                } ${isToday ? "text-accent" : "text-text-secondary"}`}
+                } ${isToday ? "text-brand-teal" : "text-text-secondary"}`}
               >
                 {day.hours > 0 ? `${day.hours}h` : ""}
               </span>
 
-              <div className="w-full flex-1 flex items-end">
+              <div className="flex w-full flex-1 items-end">
                 <div
                   className={`w-full rounded-t-md transition-all duration-700 ease-out ${
                     hasActivity
                       ? isToday
-                        ? "bg-gradient-to-t from-accent to-purple-400"
-                        : "bg-gradient-to-t from-indigo-600/60 to-indigo-400/40"
-                      : "bg-border-subtle/50"
+                        ? "bg-brand-teal"
+                        : "bg-brand-blue/70"
+                      : "bg-bg-elevated"
                   }`}
                   style={{
                     height: animate
@@ -65,7 +77,7 @@ export function WeeklyActivity({ days }: WeeklyActivityProps) {
 
               <span
                 className={`text-xs font-medium ${
-                  isToday ? "text-accent" : "text-text-muted"
+                  isToday ? "text-brand-teal" : "text-text-muted"
                 }`}
               >
                 {day.day}
@@ -75,11 +87,11 @@ export function WeeklyActivity({ days }: WeeklyActivityProps) {
         })}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between">
+      <div className="mt-4 flex items-center justify-between border-t border-border-subtle pt-3">
         <span className="text-xs text-text-muted">
           {days.filter((d) => d.hours > 0).length} active days
         </span>
-        <span className="text-xs text-text-secondary font-medium tabular-nums">
+        <span className="text-xs font-medium tabular-nums text-text-secondary">
           {parseFloat(days.reduce((s, d) => s + d.hours, 0).toFixed(1))}h total
         </span>
       </div>

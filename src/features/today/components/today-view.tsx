@@ -10,26 +10,25 @@ import { QuickActions } from "./quick-actions";
 import { getDashboardStats, getRecommendedTopic, getReviewTopics } from "../data";
 import { useSessionStore } from "@/features/sessions/session-provider";
 import { useRoadmapStore } from "@/features/roadmap/roadmap-provider";
-
-// ── Skeleton placeholders ──────────────────────────────────────────
+import { dashboardCard } from "@/components/dashboard";
 
 function SkeletonPulse({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-lg bg-bg-surface/60 ${className ?? ""}`}
+      className={`animate-pulse rounded-lg bg-bg-elevated ${className ?? ""}`}
     />
   );
 }
 
 function QuickStatsSkeleton() {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}
-          className="rounded-xl border border-border-subtle bg-bg-surface/50 px-4 py-4 flex items-center gap-3"
+          className={`${dashboardCard} flex items-center gap-3 px-4 py-3.5`}
         >
-          <SkeletonPulse className="h-10 w-10 rounded-xl" />
+          <SkeletonPulse className="h-9 w-9 rounded-lg" />
           <div className="flex-1 space-y-2">
             <SkeletonPulse className="h-6 w-12" />
             <SkeletonPulse className="h-3 w-20" />
@@ -40,18 +39,17 @@ function QuickStatsSkeleton() {
   );
 }
 
-function DashboardSkeleton() {
+function TodaySkeleton() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-      {/* Left column */}
-      <div className="lg:col-span-3 space-y-6">
-        <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5 space-y-3">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+      <div className="space-y-6 lg:col-span-3">
+        <div className={`${dashboardCard} space-y-3 p-5`}>
           <SkeletonPulse className="h-4 w-32" />
-          <SkeletonPulse className="h-5 w-48" />
+          <SkeletonPulse className="h-6 w-48" />
           <SkeletonPulse className="h-4 w-40" />
           <SkeletonPulse className="h-9 w-36 rounded-lg" />
         </div>
-        <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5 space-y-3">
+        <div className={`${dashboardCard} space-y-3 p-5`}>
           <SkeletonPulse className="h-4 w-28" />
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex items-center justify-between py-2">
@@ -64,16 +62,14 @@ function DashboardSkeleton() {
           ))}
         </div>
       </div>
-
-      {/* Right column */}
-      <div className="lg:col-span-2 space-y-6">
-        <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5 space-y-3">
+      <div className="space-y-6 lg:col-span-2">
+        <div className={`${dashboardCard} space-y-3 p-5`}>
           <SkeletonPulse className="h-4 w-28" />
           {Array.from({ length: 4 }).map((_, i) => (
             <SkeletonPulse key={i} className="h-5 w-full" />
           ))}
         </div>
-        <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5 space-y-3">
+        <div className={`${dashboardCard} space-y-3 p-5`}>
           <SkeletonPulse className="h-4 w-24" />
           <SkeletonPulse className="h-9 w-full rounded-lg" />
           <SkeletonPulse className="h-9 w-full rounded-lg" />
@@ -83,14 +79,11 @@ function DashboardSkeleton() {
   );
 }
 
-// ── Main view ──────────────────────────────────────────────────────
-
 export function TodayView() {
   const { sessions, isHydrated: sessionsHydrated } = useSessionStore();
   const { roadmap, isHydrated: roadmapHydrated } = useRoadmapStore();
   const isHydrated = sessionsHydrated && roadmapHydrated;
 
-  // Session-dependent stats (recalculate when sessions change)
   const stats = useMemo(
     () => getDashboardStats(sessions, roadmap),
     [sessions, roadmap],
@@ -110,21 +103,19 @@ export function TodayView() {
         {!isHydrated ? (
           <>
             <QuickStatsSkeleton />
-            <DashboardSkeleton />
+            <TodaySkeleton />
           </>
         ) : (
           <>
             <QuickStats stats={stats} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-              {/* Left column */}
-              <div className="lg:col-span-3 space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+              <div className="space-y-6 lg:col-span-3">
                 <RecommendedTopic topic={recommendedTopic} />
                 <DueForReview topics={reviewTopics} />
               </div>
 
-              {/* Right column */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="space-y-6 lg:col-span-2">
                 <TodaysGoals />
                 <QuickActions />
               </div>
@@ -135,4 +126,3 @@ export function TodayView() {
     </div>
   );
 }
-

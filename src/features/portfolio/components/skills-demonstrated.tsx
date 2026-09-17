@@ -7,7 +7,7 @@ interface SkillsDemonstratedProps {
 
 export function SkillsDemonstrated({ technologies }: SkillsDemonstratedProps) {
   return (
-    <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5">
+    <div className="rounded-[10px] border border-border-subtle bg-bg-surface p-5">
       <div className="flex items-center gap-2 mb-4">
         <Code2 size={16} className="text-accent" />
         <h3 className="text-sm font-semibold text-text-primary">

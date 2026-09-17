@@ -6,7 +6,9 @@ const neonAuthMiddleware = auth.middleware({
 });
 
 export async function proxy(request: NextRequest) {
-  if (request.headers.has("Next-Action")) {
+  const { pathname } = request.nextUrl;
+
+  if (pathname === "/" || request.headers.has("Next-Action")) {
     return;
   }
 

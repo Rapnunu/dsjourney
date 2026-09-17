@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { DashboardScrollReveal } from "@/components/dashboard";
 import { PageHeader } from "@/components/ui/page-header";
 import { BarChart3 } from "lucide-react";
 import { KpiCards } from "./kpi-cards";
@@ -50,7 +51,7 @@ function AnalyticsSkeleton() {
 
       {/* Charts row skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-3 rounded-xl border border-border-primary bg-bg-surface/50 p-5 space-y-4">
+        <div className="lg:col-span-3 rounded-[10px] border border-border-subtle bg-bg-surface p-5 space-y-4">
           <SkeletonPulse className="h-4 w-40" />
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="space-y-1.5">
@@ -62,7 +63,7 @@ function AnalyticsSkeleton() {
             </div>
           ))}
         </div>
-        <div className="lg:col-span-2 rounded-xl border border-border-primary bg-bg-surface/50 p-5 space-y-4">
+        <div className="lg:col-span-2 rounded-[10px] border border-border-subtle bg-bg-surface p-5 space-y-4">
           <SkeletonPulse className="h-4 w-28" />
           <div className="flex items-end gap-2 h-40">
             {[45, 65, 30, 55, 75, 40, 60].map((h, i) => (
@@ -83,7 +84,7 @@ function AnalyticsSkeleton() {
         {Array.from({ length: 2 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-xl border border-border-primary bg-bg-surface/50 p-5 space-y-3"
+            className="rounded-[10px] border border-border-subtle bg-bg-surface p-5 space-y-3"
           >
             <SkeletonPulse className="h-4 w-32" />
             {Array.from({ length: 4 }).map((_, j) => (
@@ -121,7 +122,7 @@ export function AnalyticsView() {
     <div>
       <PageHeader
         title="Analytics"
-        subtitle="Insights into your preparation progress"
+        subtitle="Understand how your study effort turns into progress."
         icon={<BarChart3 size={22} />}
       />
 
@@ -132,20 +133,22 @@ export function AnalyticsView() {
           {/* KPI cards */}
           <KpiCards stats={kpiStats} />
 
-          {/* Charts row */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+            <DashboardScrollReveal className="lg:col-span-3">
               <HoursByCategory categories={categoryHours} />
-            </div>
-            <div className="lg:col-span-2">
+            </DashboardScrollReveal>
+            <DashboardScrollReveal className="lg:col-span-2" delayMs={60}>
               <WeeklyActivity days={weeklyActivity} />
-            </div>
+            </DashboardScrollReveal>
           </div>
 
-          {/* Tables row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <DifficultTopics topics={difficultTopics} />
-            <ProgressVsTime data={progressData} />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <DashboardScrollReveal>
+              <DifficultTopics topics={difficultTopics} />
+            </DashboardScrollReveal>
+            <DashboardScrollReveal delayMs={60}>
+              <ProgressVsTime data={progressData} />
+            </DashboardScrollReveal>
           </div>
         </div>
       )}

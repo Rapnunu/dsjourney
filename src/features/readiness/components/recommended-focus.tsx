@@ -19,7 +19,7 @@ export function RecommendedFocus({ topics }: RecommendedFocusProps) {
   }
 
   return (
-    <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5">
+    <div className="rounded-[10px] border border-border-subtle bg-bg-surface p-5">
       <div className="flex items-center gap-2 mb-4">
         <Sparkles size={16} className="text-accent" />
         <h3 className="text-sm font-semibold text-text-primary">
@@ -65,9 +65,7 @@ export function RecommendedFocus({ topics }: RecommendedFocusProps) {
       {/* CTA */}
       <Link
         href="/study-sessions"
-        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium
-          bg-accent text-white hover:bg-accent-hover
-          focus-ring transition-colors duration-150"
+        className="inline-flex items-center gap-2 rounded-lg bg-brand-teal px-4 py-2.5 text-sm font-semibold text-[#071016] transition-colors hover:bg-brand-teal/90 focus-ring"
       >
         Start Study Session
         <ArrowRight size={15} />

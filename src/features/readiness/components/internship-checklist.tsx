@@ -26,7 +26,7 @@ export function InternshipChecklist({ items: initialItems }: InternshipChecklist
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   return (
-    <div className="rounded-xl border border-border-primary bg-bg-surface/50 p-5">
+    <div className="rounded-[10px] border border-border-subtle bg-bg-surface p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <ClipboardCheck size={16} className="text-emerald-400" />
@@ -40,9 +40,9 @@ export function InternshipChecklist({ items: initialItems }: InternshipChecklist
       </div>
 
       {/* Progress bar */}
-      <div className="h-1.5 rounded-full bg-bg-primary/80 overflow-hidden mb-4">
+      <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-bg-elevated">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500 ease-out"
+          className="h-full rounded-full bg-success transition-all duration-500 ease-out"
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -59,7 +59,7 @@ export function InternshipChecklist({ items: initialItems }: InternshipChecklist
             <div
               className={`flex-shrink-0 h-5 w-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
                 item.completed
-                  ? "bg-emerald-500 border-emerald-500"
+                  ? "border-success bg-success"
                   : "border-zinc-600 group-hover:border-zinc-400"
               }`}
             >
