@@ -47,7 +47,7 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "List Comprehensions & Generators",
         difficulty: "intermediate",
         estimatedHours: 3,
-        resourceLink: "https://realpython.com/list-comprehension-python/",
+        resourceLink: "https://docs.python.org/3/howto/functional.html",
         lastStudied: "2026-07-14",
         mastery: "learning",
       },
@@ -56,6 +56,7 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Error Handling & Debugging",
         difficulty: "intermediate",
         estimatedHours: 4,
+        resourceLink: "https://docs.python.org/3/tutorial/errors.html",
         mastery: "learning",
       },
       {
@@ -63,6 +64,7 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "File I/O & Serialization",
         difficulty: "beginner",
         estimatedHours: 3,
+        resourceLink: "https://docs.python.org/3/tutorial/inputoutput.html",
         mastery: "not_started",
       },
       {
@@ -70,7 +72,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "NumPy & Pandas Fundamentals",
         difficulty: "advanced",
         estimatedHours: 12,
-        resourceLink: "https://pandas.pydata.org/docs/getting_started/",
+        resourceLink:
+          "https://pandas.pydata.org/docs/getting_started/intro_tutorials/index.html",
         mastery: "not_started",
       },
     ],
@@ -82,16 +85,16 @@ const roadmapCatalogSource: RoadmapCategory[] = [
     topics: [
       {
         id: "sql-1",
-        name: "SELECT & Filtering",
+        name: "Select & Filtering",
         difficulty: "beginner",
         estimatedHours: 3,
-        resourceLink: "https://www.w3schools.com/sql/",
+        resourceLink: "https://www.w3schools.com/sql/sql_select.asp",
         lastStudied: "2026-07-21",
         mastery: "mastered",
       },
       {
         id: "sql-2",
-        name: "JOINs (INNER, LEFT, RIGHT, FULL)",
+        name: "Joins (Inner, Left, Right, Full)",
         difficulty: "intermediate",
         estimatedHours: 5,
         resourceLink: "https://www.sqlitetutorial.net/sqlite-join/",
@@ -100,10 +103,10 @@ const roadmapCatalogSource: RoadmapCategory[] = [
       },
       {
         id: "sql-3",
-        name: "Aggregations & GROUP BY",
+        name: "Aggregations & Group By",
         difficulty: "intermediate",
         estimatedHours: 4,
-        resourceLink: "https://mode.com/sql-tutorial/sql-group-by",
+        resourceLink: "https://www.thoughtspot.com/sql-tutorial/sql-group-by",
         lastStudied: "2026-07-18",
         mastery: "practiced",
       },
@@ -112,6 +115,7 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Subqueries & CTEs",
         difficulty: "intermediate",
         estimatedHours: 5,
+        resourceLink: "https://www.thoughtspot.com/sql-tutorial/sql-subquery",
         mastery: "learning",
       },
       {
@@ -119,7 +123,7 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Window Functions",
         difficulty: "advanced",
         estimatedHours: 6,
-        resourceLink: "https://mode.com/sql-tutorial/sql-window-functions",
+        resourceLink: "https://www.thoughtspot.com/sql-tutorial/sql-window-functions",
         mastery: "not_started",
       },
       {
@@ -127,6 +131,7 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Query Optimization & Indexing",
         difficulty: "advanced",
         estimatedHours: 5,
+        resourceLink: "https://use-the-index-luke.com/sql/where-clause",
         mastery: "not_started",
       },
     ],
@@ -141,7 +146,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Descriptive Statistics",
         difficulty: "beginner",
         estimatedHours: 4,
-        resourceLink: "https://www.khanacademy.org/math/statistics-probability",
+        resourceLink:
+          "https://www.khanacademy.org/math/statistics-probability/summarizing-quantitative-data",
         lastStudied: "2026-07-17",
         mastery: "mastered",
       },
@@ -150,6 +156,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Probability Distributions",
         difficulty: "intermediate",
         estimatedHours: 6,
+        resourceLink:
+          "https://www.khanacademy.org/math/statistics-probability/random-variables-probability-distributions",
         lastStudied: "2026-07-16",
         mastery: "practiced",
       },
@@ -158,6 +166,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Hypothesis Testing",
         difficulty: "intermediate",
         estimatedHours: 6,
+        resourceLink:
+          "https://www.khanacademy.org/math/statistics-probability/significance-tests-one-sample",
         lastStudied: "2026-07-12",
         mastery: "learning",
       },
@@ -166,6 +176,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Confidence Intervals",
         difficulty: "intermediate",
         estimatedHours: 4,
+        resourceLink:
+          "https://www.khanacademy.org/math/statistics-probability/confidence-intervals-one-sample",
         mastery: "learning",
       },
       {
@@ -173,6 +185,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Correlation & Regression",
         difficulty: "intermediate",
         estimatedHours: 5,
+        resourceLink:
+          "https://www.khanacademy.org/math/statistics-probability/describing-relationships-quantitative-data",
         mastery: "not_started",
       },
       {
@@ -180,6 +194,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Bayesian Statistics",
         difficulty: "advanced",
         estimatedHours: 8,
+        resourceLink:
+          "https://seeing-theory.brown.edu/bayesian-inference/index.html",
         mastery: "not_started",
       },
       {
@@ -187,7 +203,7 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "A/B Testing",
         difficulty: "advanced",
         estimatedHours: 5,
-        resourceLink: "https://www.optimizely.com/optimization-glossary/ab-testing/",
+        resourceLink: "https://www.evanmiller.org/ab-testing/",
         mastery: "not_started",
       },
     ],
@@ -211,6 +227,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Logistic Regression",
         difficulty: "intermediate",
         estimatedHours: 5,
+        resourceLink:
+          "https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression",
         lastStudied: "2026-07-08",
         mastery: "learning",
       },
@@ -219,6 +237,7 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Decision Trees & Random Forests",
         difficulty: "intermediate",
         estimatedHours: 6,
+        resourceLink: "https://scikit-learn.org/stable/modules/tree.html",
         mastery: "learning",
       },
       {
@@ -226,6 +245,7 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Support Vector Machines",
         difficulty: "advanced",
         estimatedHours: 6,
+        resourceLink: "https://scikit-learn.org/stable/modules/svm.html",
         mastery: "not_started",
       },
       {
@@ -233,6 +253,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "K-Means Clustering",
         difficulty: "intermediate",
         estimatedHours: 4,
+        resourceLink:
+          "https://scikit-learn.org/stable/modules/clustering.html#k-means",
         mastery: "not_started",
       },
       {
@@ -240,7 +262,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Neural Networks Basics",
         difficulty: "advanced",
         estimatedHours: 10,
-        resourceLink: "https://pytorch.org/tutorials/",
+        resourceLink:
+          "https://docs.pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html",
         mastery: "not_started",
       },
       {
@@ -248,6 +271,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Model Evaluation Metrics",
         difficulty: "intermediate",
         estimatedHours: 4,
+        resourceLink:
+          "https://scikit-learn.org/stable/modules/model_evaluation.html",
         mastery: "not_started",
       },
       {
@@ -255,6 +280,7 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Feature Engineering",
         difficulty: "advanced",
         estimatedHours: 7,
+        resourceLink: "https://scikit-learn.org/stable/modules/preprocessing.html",
         mastery: "not_started",
       },
     ],
@@ -269,7 +295,7 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Basic Commands (init, add, commit, push)",
         difficulty: "beginner",
         estimatedHours: 2,
-        resourceLink: "https://git-scm.com/doc",
+        resourceLink: "https://git-scm.com/docs/gittutorial",
         lastStudied: "2026-07-21",
         mastery: "mastered",
       },
@@ -278,6 +304,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Branching & Merging",
         difficulty: "intermediate",
         estimatedHours: 3,
+        resourceLink:
+          "https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging",
         lastStudied: "2026-07-20",
         mastery: "mastered",
       },
@@ -286,6 +314,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Pull Requests & Code Review",
         difficulty: "intermediate",
         estimatedHours: 3,
+        resourceLink:
+          "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests",
         lastStudied: "2026-07-19",
         mastery: "practiced",
       },
@@ -294,6 +324,8 @@ const roadmapCatalogSource: RoadmapCategory[] = [
         name: "Conflict Resolution",
         difficulty: "intermediate",
         estimatedHours: 3,
+        resourceLink:
+          "https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging#_basic_merge_conflicts",
         mastery: "learning",
       },
       {

@@ -6,7 +6,6 @@ import {
   mapAuthErrorMessage,
 } from "@/lib/auth/auth-errors";
 import { LEGAL_AGREEMENT_ERROR, PASSWORD_RESET_EMAIL_OTP_TYPE } from "@/lib/auth/constants";
-import { getTestAccountCredentials, isDemoLoginEnvironment } from "@/lib/auth/demo-login";
 import { auth } from "@/lib/auth/server";
 
 type AuthErrorLike = {
@@ -260,30 +259,5 @@ export async function signOutAction(): Promise<
   { success: true } | { error: string }
 > {
   await auth.signOut();
-  return { success: true };
-}
-
-export async function demoLoginAction(): Promise<
-  { success: true } | { error: string }
-> {
-  if (!isDemoLoginEnvironment()) {
-    return { error: "Demo login is not available." };
-  }
-
-  const credentials = getTestAccountCredentials();
-
-  if (!credentials) {
-    return { error: "Test account is not configured." };
-  }
-
-  const { error } = await auth.signIn.email({
-    email: credentials.email,
-    password: credentials.password,
-  });
-
-  if (error) {
-    return { error: mapAuthErrorMessage(error) };
-  }
-
   return { success: true };
 }

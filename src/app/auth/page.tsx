@@ -1,10 +1,6 @@
 import { redirect } from "next/navigation";
 import { DsjourneyLogo } from "@/components/brand/dsjourney-logo";
 import { mapOAuthQueryError } from "@/lib/auth/auth-errors";
-import {
-  isDemoLoginConfigured,
-  isDemoLoginEnvironment,
-} from "@/lib/auth/demo-login";
 import { auth } from "@/lib/auth/server";
 import { createAuthMetadata } from "@/lib/metadata";
 import Link from "next/link";
@@ -69,8 +65,6 @@ export default async function AuthPage({ searchParams }: AuthPageProps) {
               initialError={initialError}
               initialMessage={initialMessage}
               initialMode={initialMode}
-              showDemoSection={isDemoLoginEnvironment()}
-              demoLoginAvailable={isDemoLoginConfigured()}
             />
           </AuthEntrance>
         </div>

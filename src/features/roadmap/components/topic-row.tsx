@@ -38,10 +38,10 @@ export function TopicRow({
     >
       {/* Left: Topic info */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-text-primary truncate">
+        <p className="font-sans text-sm font-medium text-text-primary truncate">
           {topic.name}
         </p>
-        <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+        <div className="font-sans flex items-center gap-3 mt-1.5 flex-wrap">
           {/* Difficulty badge */}
           <span
             className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${diffConfig.bgColor} ${diffConfig.color}`}
@@ -61,7 +61,7 @@ export function TopicRow({
               href={topic.resourceLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-brand-teal transition-colors hover:text-brand-teal/80"
+              className="inline-flex items-center gap-1 font-sans text-xs font-medium text-brand-teal transition-colors hover:text-brand-teal/80"
             >
               <ExternalLink size={12} />
               Resource

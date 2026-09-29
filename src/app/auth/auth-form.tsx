@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  type FocusEvent,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { DsjourneyLogo } from "@/components/brand/dsjourney-logo";
 import { PasswordInput } from "@/components/auth/password-input";
@@ -25,7 +31,6 @@ import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { LegalModalLinkButton } from "@/components/auth/legal-modal-link-button";
 import { VerificationCodeInput } from "@/components/auth/verification-code-input";
 import {
-  demoLoginAction,
   requestPasswordResetAction,
   resendPasswordResetCodeAction,
   resendVerificationCodeAction,
@@ -46,8 +51,6 @@ interface AuthFormProps {
   initialError?: string;
   initialMessage?: string;
   initialMode?: "sign_in" | "sign_up";
-  showDemoSection?: boolean;
-  demoLoginAvailable?: boolean;
 }
 
 interface FieldErrors {
@@ -67,6 +70,10 @@ function navigateAfterAuthSuccess(): void {
 const emailInputClassName =
   "w-full rounded-[9px] border border-white/10 bg-[#11161D] px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-teal focus:outline-none focus:ring-1 focus:ring-brand-teal transition-colors h-11";
 
+function preventAutofillOnFocus(event: FocusEvent<HTMLInputElement>): void {
+  event.currentTarget.removeAttribute("readonly");
+}
+
 function AuthOrDivider() {
   return (
     <div className="relative my-5">
@@ -74,19 +81,6 @@ function AuthOrDivider() {
         <div className="w-full border-t border-white/[0.08]" />
       </div>
       <p className="relative mx-auto w-fit px-3 text-sm text-text-muted">Or</p>
-    </div>
-  );
-}
-
-function AuthSectionDivider({ label }: { label: string }) {
-  return (
-    <div className="relative my-5">
-      <div className="absolute inset-0 flex items-center" aria-hidden="true">
-        <div className="w-full border-t border-white/[0.08]" />
-      </div>
-      <p className="relative mx-auto w-fit px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted">
-        {label}
-      </p>
     </div>
   );
 }
@@ -179,8 +173,6 @@ export function AuthForm({
   initialError,
   initialMessage,
   initialMode = "sign_in",
-  showDemoSection = false,
-  demoLoginAvailable = false,
 }: AuthFormProps) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [pendingEmail, setPendingEmail] = useState("");
@@ -199,7 +191,6 @@ export function AuthForm({
   const [message, setMessage] = useState(initialMessage ?? "");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [verificationFocusKey, setVerificationFocusKey] = useState(0);
@@ -647,36 +638,7 @@ export function AuthForm({
     }
   }
 
-  async function handleDemoLogin() {
-    if (!demoLoginAvailable || isDemoSubmitting || isSubmitting) {
-      return;
-    }
-
-    setError("");
-    setMessage("");
-    setIsDemoSubmitting(true);
-
-    try {
-      const result = await demoLoginAction();
-
-      if ("error" in result) {
-        setError(result.error);
-        return;
-      }
-
-      navigateAfterAuthSuccess();
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Demo sign-in failed. Try again.",
-      );
-    } finally {
-      setIsDemoSubmitting(false);
-    }
-  }
-
-  const isBusy = isSubmitting || isDemoSubmitting || isResending;
+  const isBusy = isSubmitting || isResending;
 
   if (mode === "forgot_password") {
     return (
@@ -706,14 +668,16 @@ export function AuthForm({
             <input
               id="auth-forgot-email"
               type="email"
-              autoComplete="email"
+              autoComplete="off"
               value={email}
               onChange={(event) => {
                 setEmail(event.target.value);
                 clearFieldError("email");
               }}
               className={emailInputClassName}
-              placeholder="you@example.com"
+              placeholder="Email"
+              readOnly
+              onFocus={preventAutofillOnFocus}
               required
               aria-invalid={Boolean(fieldErrors.email)}
             />
@@ -979,14 +943,16 @@ export function AuthForm({
             <input
               id="auth-email"
               type="email"
-              autoComplete="email"
+              autoComplete="off"
               value={email}
               onChange={(event) => {
                 setEmail(event.target.value);
                 clearFieldError("email");
               }}
               className={emailInputClassName}
-              placeholder="you@example.com"
+              placeholder="Email"
+              readOnly
+              onFocus={preventAutofillOnFocus}
               required
               aria-invalid={Boolean(fieldErrors.email)}
             />
@@ -1005,6 +971,7 @@ export function AuthForm({
               autoComplete={
                 mode === "sign_in" ? "current-password" : "new-password"
               }
+              placeholder="Enter your password"
               error={fieldErrors.password}
             />
             {mode === "sign_up" && (
@@ -1035,6 +1002,7 @@ export function AuthForm({
                 clearFieldError("confirmPassword");
               }}
               autoComplete="new-password"
+              placeholder="Re-enter your password"
               error={fieldErrors.confirmPassword}
             />
           )}
@@ -1110,43 +1078,6 @@ export function AuthForm({
           onError={setError}
         />
       </div>
-
-      {showDemoSection && mode === "sign_in" && (
-        <div className="mt-5">
-          <AuthSectionDivider label="Test Account" />
-
-          {demoLoginAvailable ? (
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              disabled={isBusy}
-              className="focus-ring w-full rounded-[9px] border border-white/10 bg-[#11161D] px-4 py-3 text-left transition-colors hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <span className="flex items-center gap-2 text-sm font-medium text-text-primary">
-                {isDemoSubmitting && (
-                  <LoaderCircle
-                    size={16}
-                    className="animate-spin"
-                    aria-hidden="true"
-                  />
-                )}
-                Demo User
-              </span>
-              <span className="mt-0.5 block text-xs text-text-muted">
-                Auto sign in for QA
-              </span>
-            </button>
-          ) : (
-            <p className="rounded-[9px] border border-white/10 bg-[#11161D] px-3 py-2 text-center text-sm text-text-muted">
-              Test account unavailable
-            </p>
-          )}
-
-          <p className="mt-3 text-center text-xs text-text-muted">
-            Preview testing only
-          </p>
-        </div>
-      )}
     </div>
   );
 }

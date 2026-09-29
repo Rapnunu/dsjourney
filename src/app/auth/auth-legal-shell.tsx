@@ -9,16 +9,12 @@ interface AuthLegalShellProps {
   initialError?: string;
   initialMessage?: string;
   initialMode?: "sign_in" | "sign_up";
-  showDemoSection?: boolean;
-  demoLoginAvailable?: boolean;
 }
 
 export function AuthLegalShell({
   initialError,
   initialMessage,
   initialMode,
-  showDemoSection,
-  demoLoginAvailable,
 }: AuthLegalShellProps) {
   return (
     <AuthLegalModalProvider>
@@ -27,8 +23,6 @@ export function AuthLegalShell({
           initialError={initialError}
           initialMessage={initialMessage}
           initialMode={initialMode}
-          showDemoSection={showDemoSection}
-          demoLoginAvailable={demoLoginAvailable}
         />
       </div>
       <AuthLegalLinks />

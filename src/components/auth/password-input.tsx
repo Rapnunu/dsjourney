@@ -24,7 +24,7 @@ export function PasswordInput({
   onChange,
   autoComplete,
   error,
-  placeholder = "•••••••••",
+  placeholder = "",
 }: PasswordInputProps) {
   const [visible, setVisible] = useState(false);
 
@@ -42,6 +42,8 @@ export function PasswordInput({
           onChange={(event) => onChange(event.target.value)}
           className={inputClassName}
           placeholder={placeholder}
+          readOnly
+          onFocus={(event) => event.currentTarget.removeAttribute("readonly")}
           required
           aria-invalid={Boolean(error)}
         />
