@@ -100,7 +100,7 @@ export function SessionTimeoutDialog({
               type="button"
               disabled={isBusy}
               onClick={onStaySignedIn}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-teal px-4 py-2 text-sm font-semibold text-bg-primary transition-colors hover:bg-brand-teal/90 focus-ring disabled:opacity-60"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-teal px-4 py-2 text-sm font-semibold text-[#071016] transition-colors hover:bg-brand-teal/90 focus-ring disabled:opacity-60"
             >
               {loadingAction === "stay" && (
                 <LoaderCircle size={15} className="animate-spin" />

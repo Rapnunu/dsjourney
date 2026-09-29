@@ -7,8 +7,10 @@ import { getMasteryDistribution } from "@/features/today/data";
 import { roadmapCatalogData } from "../data";
 import { useRoadmapStore } from "../roadmap-provider";
 import { DashboardScrollReveal } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import { handleRoadmapMutationResult } from "@/lib/api/mutation-result";
 import { ProviderErrorBanner } from "@/components/ui/provider-error-banner";
+import { Map } from "lucide-react";
 import { CategoryCard } from "./category-card";
 import type { MasteryLevel } from "../types";
 import {
@@ -25,6 +27,33 @@ const masteryOrder: MasteryLevel[] = [
 ];
 
 type MasteryFilter = "all" | MasteryLevel;
+
+function RoadmapViewSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div
+            key={index}
+            className="rounded-[10px] border border-border-subtle bg-bg-surface px-4 py-3"
+          >
+            <div className="mb-2 h-3 w-16 animate-pulse rounded bg-bg-elevated" />
+            <div className="h-7 w-10 animate-pulse rounded bg-bg-elevated" />
+          </div>
+        ))}
+      </div>
+      <div className="h-9 max-w-md animate-pulse rounded-lg bg-bg-surface/60" />
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-24 animate-pulse rounded-[10px] border border-border-subtle bg-bg-surface/60"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function RoadmapView() {
   const {
@@ -127,10 +156,18 @@ export function RoadmapView() {
 
   const isFiltering = searchQuery.trim() !== "" || masteryFilter !== "all";
 
-  if (!isHydrated) return null;
-
   return (
     <div className="space-y-6">
+      <PageHeader
+        title="Roadmap"
+        subtitle="Track mastery across your Data Science learning path."
+        icon={<Map size={22} />}
+      />
+
+      {!isHydrated ? (
+        <RoadmapViewSkeleton />
+      ) : (
+        <>
       {error && (
         <ProviderErrorBanner
           title={error.title}
@@ -147,7 +184,7 @@ export function RoadmapView() {
               key={level}
               className="rounded-[10px] border border-border-subtle bg-bg-surface px-4 py-3"
             >
-              <p className="mb-1 text-xs text-text-muted">{config.label}</p>
+              <p className="mb-1 text-xs font-medium text-text-secondary">{config.label}</p>
               <p
                 className={`text-2xl font-semibold tabular-nums ${config.activeColor}`}
               >
@@ -161,7 +198,7 @@ export function RoadmapView() {
         })}
 
         <div className="rounded-[10px] border border-border-subtle bg-bg-surface px-4 py-3">
-          <p className="mb-1 text-xs text-text-muted">Readiness</p>
+          <p className="mb-1 text-xs font-medium text-text-secondary">Readiness</p>
           <p className="text-2xl font-semibold tabular-nums text-brand-teal">
             <CountUp to={overallStats.readiness} suffix="%" duration={1} />
           </p>
@@ -169,7 +206,7 @@ export function RoadmapView() {
         </div>
 
         <div className="rounded-[10px] border border-border-subtle bg-bg-surface px-4 py-3">
-          <p className="mb-1 text-xs text-text-muted">Remaining</p>
+          <p className="mb-1 text-xs font-medium text-text-secondary">Remaining</p>
           <div className="flex items-baseline gap-1">
             <p className="text-2xl font-semibold tabular-nums text-text-primary">
               <CountUp to={overallStats.remainingHours} decimals={1} duration={1} />
@@ -194,6 +231,7 @@ export function RoadmapView() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search topics"
             placeholder="Search topics..."
             className="h-9 w-full rounded-lg border border-border-strong bg-bg-input pl-9 pr-9 text-sm text-text-primary
               placeholder:text-text-muted
@@ -202,8 +240,9 @@ export function RoadmapView() {
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary p-0.5 rounded transition-colors"
+              className="focus-ring absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-text-muted transition-colors hover:text-text-primary"
               aria-label="Clear search"
             >
               <X size={14} />
@@ -212,7 +251,7 @@ export function RoadmapView() {
         </div>
 
         {/* Mastery filter pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
           <FilterPill
             label="All"
             isActive={masteryFilter === "all"}
@@ -253,7 +292,7 @@ export function RoadmapView() {
             </DashboardScrollReveal>
           ))
         ) : (
-          <div className="rounded-xl border border-dashed border-border-primary bg-bg-surface/50 p-12 text-center">
+          <div className="rounded-[10px] border border-dashed border-border-primary bg-bg-surface/50 p-12 text-center">
             <p className="text-text-muted text-sm">
               {isFiltering
                 ? "No topics match your search or filter"
@@ -262,6 +301,8 @@ export function RoadmapView() {
           </div>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 }
@@ -289,22 +330,22 @@ function FilterPill({
     <button
       onClick={onClick}
       className={`
-        flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+        flex items-center gap-1.5 border px-3 py-1.5 rounded-lg text-xs font-medium
         transition-all duration-150 whitespace-nowrap cursor-pointer
         focus-ring
         ${
           isActive
             ? activeColor && activeBg
-              ? `${activeBg} ${activeColor} ring-1 ring-current/20`
-              : "bg-accent-muted text-brand-teal ring-1 ring-brand-teal/20"
-            : "text-text-muted hover:text-text-secondary hover:bg-bg-surface-hover"
+              ? `border-transparent ${activeBg} ${activeColor} ring-1 ring-current/25`
+              : "border-transparent bg-accent-muted text-brand-teal ring-1 ring-brand-teal/30"
+            : "border border-border-strong bg-bg-elevated text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary"
         }
       `}
     >
       {label}
       <span
         className={`tabular-nums ${
-          isActive ? "opacity-80" : "opacity-50"
+          isActive ? "opacity-90" : "text-text-muted"
         }`}
       >
         {count}

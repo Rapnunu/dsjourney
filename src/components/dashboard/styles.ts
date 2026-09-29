@@ -1,7 +1,7 @@
 /** Shared dashboard surface + form class strings (solid colors only). */
 
 export const dashboardCard =
-  "rounded-[10px] border border-border-subtle bg-bg-surface";
+  "ds-surface-card rounded-[10px] border border-border-subtle bg-bg-surface";
 
 export const dashboardCardHover =
   "transition-[transform,border-color] duration-150 hover:-translate-y-px hover:border-border-strong";

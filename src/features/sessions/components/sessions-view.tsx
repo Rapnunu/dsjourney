@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef } from "react";
 import { BookOpen, Clock, Flame, TrendingUp } from "lucide-react";
 import { DashboardScrollReveal, MetricCard } from "@/components/dashboard";
+import { PageHeader } from "@/components/ui/page-header";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ProviderErrorBanner } from "@/components/ui/provider-error-banner";
 import { computeStreak } from "@/features/today/data";
@@ -125,12 +126,18 @@ export function SessionsView() {
     return { totalSessions, totalHours, avgDifficulty, currentStreak };
   }, [sessions]);
 
-  if (!isHydrated) {
-    return <SessionsViewSkeleton />;
-  }
-
   return (
     <div className="space-y-8">
+      <PageHeader
+        title="Study Sessions"
+        subtitle="Log study time and track your learning progress."
+        icon={<BookOpen size={22} />}
+      />
+
+      {!isHydrated ? (
+        <SessionsViewSkeleton />
+      ) : (
+        <>
       {error && (
         <ProviderErrorBanner
           title={error.title}
@@ -192,6 +199,8 @@ export function SessionsView() {
           if (!isDeleting) setDeleteSessionId(null);
         }}
       />
+        </>
+      )}
     </div>
   );
 }

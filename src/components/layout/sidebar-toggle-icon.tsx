@@ -2,12 +2,12 @@ interface SidebarToggleIconProps {
   className?: string;
 }
 
-/** Stacked lines aligned toward the sidebar edge — mirrored when collapsed. */
+/** Centered panel toggle lines for collapse/expand control. */
 export function SidebarToggleIcon({ className }: SidebarToggleIconProps) {
   return (
     <svg
-      width="12"
-      height="12"
+      width="14"
+      height="14"
       viewBox="0 0 14 14"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -16,15 +16,15 @@ export function SidebarToggleIcon({ className }: SidebarToggleIconProps) {
     >
       <line
         x1="2"
-        y1="2.75"
+        y1="3.5"
         x2="12"
-        y2="2.75"
+        y2="3.5"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
       />
       <line
-        x1="5"
+        x1="2"
         y1="7"
         x2="12"
         y2="7"
@@ -33,10 +33,10 @@ export function SidebarToggleIcon({ className }: SidebarToggleIconProps) {
         strokeLinecap="round"
       />
       <line
-        x1="8"
-        y1="11.25"
+        x1="2"
+        y1="10.5"
         x2="12"
-        y2="11.25"
+        y2="10.5"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"

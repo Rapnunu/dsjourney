@@ -106,8 +106,9 @@ function AnalyticsSkeleton() {
 // ── Main view ──────────────────────────────────────────────────────
 
 export function AnalyticsView() {
-  const { sessions, isHydrated } = useSessionStore();
-  const { roadmap } = useRoadmapStore();
+  const { sessions, isHydrated: sessionsHydrated } = useSessionStore();
+  const { roadmap, isHydrated: roadmapHydrated } = useRoadmapStore();
+  const isHydrated = sessionsHydrated && roadmapHydrated;
 
   const kpiStats = useMemo(() => getKpiStats(sessions), [sessions]);
   const categoryHours = useMemo(() => getCategoryHours(sessions), [sessions]);

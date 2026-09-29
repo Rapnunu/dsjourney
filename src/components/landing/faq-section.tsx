@@ -6,7 +6,7 @@ export function FaqSection() {
   return (
     <section
       id="faq"
-      className="relative border-t border-white/10 bg-black py-20 sm:py-24"
+      className="relative border-t border-border-subtle bg-bg-primary py-20 sm:py-24"
       aria-labelledby="faq-heading"
     >
       <div className="mx-auto max-w-[62rem] px-5 sm:px-8 lg:px-10">
@@ -16,11 +16,11 @@ export function FaqSection() {
           </p>
           <h2
             id="faq-heading"
-            className="mt-3 text-3xl font-bold text-white sm:text-4xl"
+            className="mt-3 text-3xl font-bold text-text-primary sm:text-4xl"
           >
             Frequently Asked Questions
           </h2>
-          <p className="mt-3 max-w-2xl text-white/65">
+          <p className="mt-3 max-w-2xl text-text-secondary">
             Everything you need to know before starting your DSJourney.
           </p>
         </AnimatedContent>

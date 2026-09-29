@@ -5,12 +5,12 @@ import { ScrollReveal } from "@/components/landing/scroll-reveal";
 
 export function ProgressSection() {
   return (
-    <section className="relative border-t border-white/10 bg-brand-navy py-20 sm:py-24">
+    <section className="relative border-t border-border-subtle bg-bg-surface py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
         <ScrollReveal>
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-brand-teal/10 via-transparent to-brand-electric/10 p-8 sm:p-12">
+          <div className="rounded-3xl border border-border-subtle bg-gradient-to-br from-brand-teal/10 via-transparent to-brand-electric/10 p-8 sm:p-12">
             <AnimatedContent distance={14} duration={0.65} threshold={0.15}>
-              <h2 className="text-3xl font-bold text-white sm:text-4xl">
+              <h2 className="text-3xl font-bold text-text-primary sm:text-4xl">
                 Progress With Purpose
               </h2>
             </AnimatedContent>
@@ -20,7 +20,7 @@ export function ProgressSection() {
               threshold={0.15}
               delay={0.08}
             >
-              <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/70 sm:text-lg">
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-secondary sm:text-lg">
                 Every study session, roadmap milestone, and portfolio project
                 contributes to a clearer picture of your Data Science career
                 readiness. DSJourney helps you see the connection between daily

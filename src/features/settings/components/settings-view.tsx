@@ -10,6 +10,7 @@ import type { SettingsAccountData } from "@/app/settings/actions";
 import { ChangePasswordForm } from "./change-password-form";
 import { DeleteAccountDialog } from "./delete-account-dialog";
 import { SettingsDataSummary } from "./settings-data-summary";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 interface SettingsViewProps {
   account: SettingsAccountData;
@@ -61,6 +62,16 @@ export function SettingsView({ account }: SettingsViewProps) {
       />
 
       <div className="space-y-6">
+        <SectionCard title="Appearance">
+          <div className="space-y-3">
+            <p className="text-sm leading-relaxed text-text-secondary">
+              Choose light or dark mode for this device. The theme expands in a
+              circle from where you click.
+            </p>
+            <ThemeToggle variant="segmented" />
+          </div>
+        </SectionCard>
+
         <SectionCard title="Account">
           <dl className="grid gap-5 sm:grid-cols-2">
             <AccountField label="Email" value={account.email || "—"} />

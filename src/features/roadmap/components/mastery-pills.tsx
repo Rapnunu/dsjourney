@@ -37,13 +37,14 @@ export function MasteryPills({
               onSelect(level);
             }}
             className={`
-              relative flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium
+              relative flex items-center gap-1 border px-2.5 py-1 rounded-lg text-xs font-medium
               transition-all duration-150 whitespace-nowrap
               focus-ring
               ${isDisabled ? "cursor-not-allowed" : "cursor-pointer"}
-              ${isActive
-                ? `${config.activeBg} ${config.activeColor} ring-1 ${config.activeBorder}`
-                : `bg-transparent ${config.color} opacity-45 hover:opacity-75`
+              ${
+                isActive
+                  ? `border-transparent ${config.activeBg} ${config.activeColor} ring-1 ${config.activeBorder}`
+                  : `border-border-strong ${config.inactiveBg} ${config.color} hover:bg-bg-surface-hover`
               }
             `}
             aria-pressed={isActive}

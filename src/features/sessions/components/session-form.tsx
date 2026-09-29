@@ -127,7 +127,7 @@ function SessionFormFields({
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className={`${dashboardInput} [color-scheme:dark] ${inputErrorClass(Boolean(fieldErrors.date))}`}
+            className={`${dashboardInput} theme-date-input ${inputErrorClass(Boolean(fieldErrors.date))}`}
             disabled={isSubmitting}
             required
           />

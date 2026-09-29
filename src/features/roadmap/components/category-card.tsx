@@ -63,7 +63,10 @@ export function CategoryCard({
     <div className="overflow-hidden rounded-[10px] border border-border-subtle bg-bg-surface transition-colors duration-150">
       {/* Header — always visible, clickable */}
       <button
+        type="button"
         onClick={onToggle}
+        aria-expanded={isExpanded}
+        aria-controls={`category-topics-${category.id}`}
         className="focus-ring w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-bg-surface-hover/30 transition-colors duration-100 cursor-pointer"
       >
         {/* Chevron */}
@@ -80,7 +83,7 @@ export function CategoryCard({
             <h3 className="text-base font-semibold text-text-primary">
               {category.name}
             </h3>
-            <span className="text-xs text-text-muted hidden sm:inline">
+            <span className="text-xs text-text-secondary">
               {category.description}
             </span>
           </div>
@@ -92,7 +95,7 @@ export function CategoryCard({
         {/* Stats */}
         <div className="flex-shrink-0 flex items-center gap-4">
           {/* Remaining hours */}
-          <div className="hidden sm:flex items-center gap-1.5 text-text-muted">
+          <div className="hidden sm:flex items-center gap-1.5 text-text-secondary">
             <Clock size={14} />
             <span className="text-xs tabular-nums whitespace-nowrap">
               <span className="text-text-secondary font-medium">
@@ -118,7 +121,7 @@ export function CategoryCard({
 
       {/* Expandable topic list */}
       {isExpanded && (
-        <div className="border-t border-border-subtle">
+        <div id={`category-topics-${category.id}`} className="border-t border-border-subtle">
           {category.topics.map((topic, idx) => (
             <TopicRow
               key={topic.id}

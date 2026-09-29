@@ -35,7 +35,7 @@ export function LandingHero() {
               to={{ opacity: 1, y: 0 }}
               textAlign="left"
               triggerOnMount
-              className="text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl"
+              className="text-5xl font-bold tracking-tight text-text-primary sm:text-6xl lg:text-7xl"
             />
             <FadeContent
               triggerOnMount
@@ -54,20 +54,20 @@ export function LandingHero() {
           </div>
 
           <FadeContent triggerOnMount delay={0.28} duration={0.65} y={14}>
-            <p className="text-xl font-medium text-white/90 sm:text-2xl">
+            <p className="text-xl font-medium text-text-primary sm:text-2xl">
               Learn, track, and grow into a Data Scientist.
             </p>
           </FadeContent>
 
           <FadeContent triggerOnMount delay={0.36} duration={0.65} y={14}>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-text-secondary sm:text-lg">
               One place to manage your learning roadmap, study sessions, portfolio
               progress, analytics, and internship readiness.
             </p>
           </FadeContent>
 
           <FadeContent triggerOnMount delay={0.44} duration={0.65} y={12}>
-            <p className="mt-3 text-sm text-white/50">
+            <p className="mt-3 text-sm text-text-muted">
               Track progress. Build skills. Become job-ready.
             </p>
           </FadeContent>
@@ -85,7 +85,7 @@ export function LandingHero() {
               </Magnet>
               <Link
                 href="/auth"
-                className="focus-ring inline-flex items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:border-white/40 hover:bg-white/10"
+                className="focus-ring inline-flex items-center justify-center rounded-full border border-border-strong bg-bg-elevated/80 px-7 py-3.5 text-sm font-semibold text-text-primary backdrop-blur-sm transition-colors hover:bg-bg-surface-hover"
               >
                 Sign In
               </Link>
@@ -95,7 +95,7 @@ export function LandingHero() {
       </div>
 
       <div
-        className="scroll-hint-pulse absolute bottom-8 left-1/2 z-10 text-[10px] font-medium uppercase tracking-[0.3em] text-white/40"
+        className="scroll-hint-pulse absolute bottom-8 left-1/2 z-10 text-[10px] font-medium uppercase tracking-[0.3em] text-text-muted"
         aria-hidden="true"
       >
         Scroll to explore

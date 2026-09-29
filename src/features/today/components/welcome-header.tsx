@@ -1,6 +1,7 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { authClient } from "@/lib/auth/client";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -39,7 +40,15 @@ function getServerDateSnapshot(): string {
   return "";
 }
 
+function getDisplayName(name: string, email: string): string {
+  const trimmedName = name.trim();
+  if (trimmedName) return trimmedName;
+  if (email) return email.split("@")[0];
+  return "there";
+}
+
 export function WelcomeHeader() {
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const greeting = useSyncExternalStore(
     subscribeToClock,
     getClientGreetingSnapshot,
@@ -52,6 +61,16 @@ export function WelcomeHeader() {
   );
   const mounted = dateStr.length > 0;
 
+  useEffect(() => {
+    void authClient.getSession().then(({ data }) => {
+      setDisplayName(
+        getDisplayName(data?.user?.name ?? "", data?.user?.email ?? ""),
+      );
+    });
+  }, []);
+
+  const nameLabel = displayName ?? "there";
+
   return (
     <header className="mb-8">
       <h1 className="text-[1.75rem] font-semibold tracking-tight text-text-primary sm:text-[2rem]">
@@ -60,14 +79,14 @@ export function WelcomeHeader() {
         >
           {greeting},{" "}
         </span>
-        <span className="text-brand-teal">Raphael</span>
+        <span className="text-brand-teal">{nameLabel}</span>
       </h1>
       <p
         className={`mt-1 text-sm text-text-secondary transition-opacity duration-300 ${mounted ? "opacity-100" : "opacity-0"}`}
       >
         {dateStr || "\u00A0"}
       </p>
-      <p className="mt-2 text-sm text-text-muted">
+      <p className="mt-2 text-sm text-text-secondary">
         Here&apos;s what to focus on and complete today.
       </p>
     </header>

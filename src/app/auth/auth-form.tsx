@@ -106,6 +106,7 @@ function PrimaryButton({
     <button
       type="submit"
       disabled={disabled}
+      aria-busy={loading || undefined}
       className="focus-ring flex h-11 w-full items-center justify-center gap-2 rounded-[9px] bg-brand-teal px-4 text-sm font-semibold text-brand-navy transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
     >
       {loading ? (

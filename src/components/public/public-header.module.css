@@ -1,6 +1,6 @@
 .header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: #080c12;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
 }
 
 .inner {
@@ -20,6 +20,19 @@
   border-radius: 0.5rem;
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.themeToggle {
+  width: 5.5rem;
+  flex-shrink: 0;
+}
+
 .nav {
   display: flex;
   flex-wrap: wrap;
@@ -36,7 +49,7 @@
   border-bottom: 2px solid transparent;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #98a6b8;
+  color: var(--text-secondary);
   text-decoration: none;
   transition:
     color 0.15s ease,
@@ -44,12 +57,12 @@
 }
 
 .navLink:hover {
-  color: #f4f7fa;
+  color: var(--text-primary);
 }
 
 .navLinkActive {
-  color: #18b8c6;
-  border-bottom-color: #18b8c6;
+  color: var(--brand-teal);
+  border-bottom-color: var(--brand-teal);
 }
 
 @media (min-width: 640px) {

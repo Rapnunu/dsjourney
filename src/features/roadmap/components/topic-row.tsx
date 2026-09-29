@@ -50,7 +50,7 @@ export function TopicRow({
           </span>
 
           {/* Estimated hours */}
-          <span className="inline-flex items-center gap-1 text-xs text-text-muted">
+          <span className="inline-flex items-center gap-1 text-xs text-text-secondary">
             <Clock size={12} />
             {topic.estimatedHours}h
           </span>
@@ -70,7 +70,7 @@ export function TopicRow({
 
           {/* Last studied */}
           {topic.lastStudied && (
-            <span className="inline-flex items-center gap-1 text-xs text-text-muted">
+            <span className="inline-flex items-center gap-1 text-xs text-text-secondary">
               <Calendar size={12} />
               {formatDate(topic.lastStudied)}
             </span>
@@ -79,7 +79,7 @@ export function TopicRow({
       </div>
 
       {/* Right: Mastery pills */}
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0 overflow-x-auto pb-1 sm:overflow-visible sm:pb-0">
         <MasteryPills
           currentLevel={topic.mastery}
           onSelect={(level) => onMasteryChange(topic.id, level)}

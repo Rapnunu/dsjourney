@@ -19,25 +19,28 @@ import {
 import { useRoadmapStore } from "@/features/roadmap/roadmap-provider";
 import { usePortfolioStore } from "@/features/portfolio/portfolio-provider";
 
+function ReadinessViewSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="h-48 animate-pulse rounded-[10px] border border-border-subtle bg-bg-surface/60" />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <div className="h-64 animate-pulse rounded-[10px] border border-border-subtle bg-bg-surface/60 lg:col-span-3" />
+        <div className="h-64 animate-pulse rounded-[10px] border border-border-subtle bg-bg-surface/60 lg:col-span-2" />
+      </div>
+    </div>
+  );
+}
+
 export function ReadinessView() {
-  const { roadmap, isHydrated } = useRoadmapStore();
-  const { projects } = usePortfolioStore();
+  const { roadmap, isHydrated: roadmapHydrated } = useRoadmapStore();
+  const { projects, isHydrated: portfolioHydrated } = usePortfolioStore();
+  const isHydrated = roadmapHydrated && portfolioHydrated;
   const overallReadiness = getOverallReadiness(roadmap, projects);
   const summary = getReadinessSummary(overallReadiness);
   const categories = getCategoryReadiness(roadmap, projects);
   const gaps = getTopSkillGaps(roadmap, projects, 3);
   const focusTopics = getRecommendedFocusTopics(roadmap, projects);
   const checklistItems = getInternshipChecklist(roadmap, projects);
-
-  if (!isHydrated) {
-    return (
-      <PageHeader
-        title="Readiness"
-        subtitle="See how close you are to internship-ready."
-        icon={<Gauge size={22} />}
-      />
-    );
-  }
 
   return (
     <div>
@@ -47,6 +50,9 @@ export function ReadinessView() {
         icon={<Gauge size={22} />}
       />
 
+      {!isHydrated ? (
+        <ReadinessViewSkeleton />
+      ) : (
       <div className="space-y-6">
         {/* Hero section */}
         <ReadinessHero readiness={overallReadiness} summary={summary} />
@@ -73,6 +79,7 @@ export function ReadinessView() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

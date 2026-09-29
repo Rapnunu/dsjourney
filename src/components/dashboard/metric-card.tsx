@@ -47,7 +47,7 @@ export function MetricCard({
   return (
     <div className={`${dashboardCard} flex items-center gap-3 px-4 py-3.5 ${className}`}>
       {Icon && (
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-bg-elevated text-brand-teal">
+        <div className="metric-icon-well flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-bg-elevated text-brand-teal">
           <Icon size={18} strokeWidth={1.75} />
         </div>
       )}

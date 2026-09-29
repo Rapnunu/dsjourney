@@ -7,7 +7,7 @@ import { PublicFooter } from "@/components/public/public-footer";
 
 export function LandingPage() {
   return (
-    <div className="public-page min-h-screen bg-black text-white">
+    <div className="public-page min-h-screen bg-bg-primary text-text-primary">
       <main>
         <LandingHero />
         <JourneySection />

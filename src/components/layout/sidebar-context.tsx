@@ -8,6 +8,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 
 const SIDEBAR_STORAGE_KEY = "sidebar-collapsed";
 const SIDEBAR_CHANGE_EVENT = "sidebar-collapsed-change";
@@ -47,12 +48,18 @@ interface SidebarContextType {
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const isCollapsed = useSyncExternalStore(
     subscribeToSidebarPreference,
     getSidebarSnapshot,
     getServerSidebarSnapshot,
   );
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [mobileDrawer, setMobileDrawer] = useState({
+    pathname,
+    open: false,
+  });
+  const isMobileOpen =
+    mobileDrawer.pathname === pathname && mobileDrawer.open;
 
   const toggleCollapsed = useCallback(() => {
     try {
@@ -67,9 +74,12 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const setMobileOpen = useCallback((open: boolean) => {
-    setIsMobileOpen(open);
-  }, []);
+  const setMobileOpen = useCallback(
+    (open: boolean) => {
+      setMobileDrawer({ pathname, open });
+    },
+    [pathname],
+  );
 
   const contextValue = {
     isCollapsed,

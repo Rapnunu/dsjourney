@@ -1,6 +1,6 @@
 .footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: #070b12;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
   padding: 2rem 1.25rem 2.5rem;
 }
 
@@ -15,13 +15,13 @@
 .footerBrand {
   font-size: 1rem;
   font-weight: 600;
-  color: #f4f7fa;
+  color: var(--text-primary);
 }
 
 .footerTagline {
   margin-top: 0.25rem;
   font-size: 0.875rem;
-  color: #667586;
+  color: var(--text-muted);
 }
 
 .footerNav {
@@ -33,18 +33,18 @@
 
 .footerNav a {
   font-size: 0.875rem;
-  color: #98a6b8;
+  color: var(--text-secondary);
   text-decoration: none;
   transition: color 0.15s ease;
 }
 
 .footerNav a:hover {
-  color: #18b8c6;
+  color: var(--brand-teal);
 }
 
 .copyright {
   font-size: 0.8125rem;
-  color: #667586;
+  color: var(--text-muted);
 }
 
 @media (min-width: 640px) {

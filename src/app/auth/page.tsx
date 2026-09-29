@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth/server";
 import { createAuthMetadata } from "@/lib/metadata";
 import Link from "next/link";
 import { SessionTimeoutNotice } from "@/components/auth/session-timeout-notice";
+import { AuthThemeToggle } from "@/components/auth/auth-theme-toggle";
 import { AuthBrandPanel } from "./auth-brand-panel";
 import { AuthEntrance } from "./auth-entrance";
 import { AuthLegalShell } from "./auth-legal-shell";
@@ -48,6 +49,7 @@ export default async function AuthPage({ searchParams }: AuthPageProps) {
       <AuthBrandPanel />
 
       <section className={styles.authPanel}>
+        <AuthThemeToggle />
         <div className={`${styles.mobileBackdrop} lg:hidden`}>
           <div className={styles.mobileBackdropGradient} />
         </div>

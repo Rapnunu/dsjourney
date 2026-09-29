@@ -63,16 +63,18 @@ export function SessionTable({ sessions, onEdit, onDelete }: SessionTableProps) 
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search sessions"
             placeholder="Search sessions..."
-            className="w-full h-9 pl-9 pr-9 rounded-lg border border-border-primary bg-bg-surface/50 text-sm text-text-primary
+            className="h-9 w-full rounded-lg border border-border-strong bg-bg-input pl-9 pr-9 text-sm text-text-primary
               placeholder:text-text-muted
-              focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent
+              focus:border-brand-teal focus:outline-none focus:ring-1 focus:ring-brand-teal
               transition-colors duration-150"
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary p-0.5 rounded transition-colors"
+              className="focus-ring absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-text-muted transition-colors hover:text-text-primary"
               aria-label="Clear search"
             >
               <X size={14} />

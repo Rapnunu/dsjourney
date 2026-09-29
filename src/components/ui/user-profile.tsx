@@ -7,15 +7,26 @@ import { ChevronUp, LogOut, Settings } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
 import { markSigningOut } from "@/lib/api/auth-expiry";
 import { signOutAction } from "@/app/auth/actions";
+import { SidebarTooltip } from "@/components/layout/sidebar-tooltip";
 
 interface UserProfileProps {
   collapsed?: boolean;
 }
 
-function ProfileAvatar({ initial }: { initial: string }) {
+function ProfileAvatar({
+  initial,
+  compact = false,
+}: {
+  initial: string;
+  compact?: boolean;
+}) {
+  const sizeClass = compact ? "h-7 w-7 text-xs" : "h-8 w-8 text-sm";
+
   return (
     <div className="relative shrink-0">
-      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-elevated text-sm font-semibold text-brand-teal">
+      <div
+        className={`flex items-center justify-center rounded-full bg-bg-elevated font-semibold text-brand-teal ${sizeClass}`}
+      >
         {initial}
       </div>
       <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-bg-sidebar bg-success" />
@@ -71,38 +82,47 @@ export function UserProfile({ collapsed = false }: UserProfileProps) {
       <DropdownMenu.Trigger asChild>
         <button
           type="button"
-          className={`focus-ring w-full rounded-lg text-left transition-colors hover:bg-bg-surface-hover ${
-            collapsed
-              ? "flex justify-center px-2 py-3"
-              : "flex items-center gap-2 px-3 py-3"
-          }`}
-          aria-label="Open profile menu"
+          className="group relative focus-ring w-full rounded-lg text-left transition-colors hover:bg-bg-surface-hover"
+          aria-label={
+            error
+              ? `Open profile menu. Sign out failed: ${error}`
+              : "Open profile menu"
+          }
         >
-          <ProfileAvatar initial={initial} />
-          {!collapsed && (
-            <>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-text-primary">
-                  {displayName}
-                </span>
-                <span className="block truncate text-xs text-text-secondary">
-                  {email || "Signed in"}
-                </span>
-                {error && (
-                  <span className="block truncate text-[10px] text-danger">
-                    {error}
+          <span
+            className={`sidebar-row sidebar-nav-content w-full ${
+              collapsed ? "" : "sidebar-row--trailing"
+            }`}
+          >
+            <span className="sidebar-icon-slot">
+              <ProfileAvatar initial={initial} compact />
+            </span>
+            {!collapsed && (
+              <>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium text-text-primary">
+                    {displayName}
                   </span>
-                )}
-              </span>
-              <ChevronUp
-                size={16}
-                className={`shrink-0 text-text-muted transition-transform duration-200 ${
-                  open ? "rotate-180" : ""
-                }`}
-                aria-hidden="true"
-              />
-            </>
-          )}
+                  <span className="block truncate text-xs text-text-secondary">
+                    {email || "Signed in"}
+                  </span>
+                  {error && (
+                    <span className="block truncate text-[10px] text-danger">
+                      {error}
+                    </span>
+                  )}
+                </span>
+                <ChevronUp
+                  size={16}
+                  className={`shrink-0 text-text-muted transition-transform duration-200 ${
+                    open ? "rotate-180" : ""
+                  }`}
+                  aria-hidden="true"
+                />
+              </>
+            )}
+          </span>
+          <SidebarTooltip label={displayName} show={collapsed} />
         </button>
       </DropdownMenu.Trigger>
 

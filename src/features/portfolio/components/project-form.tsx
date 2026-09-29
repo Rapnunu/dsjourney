@@ -200,7 +200,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
             type="date"
             value={startDate}
             onChange={(event) => setStartDate(event.target.value)}
-            className={`${dashboardInput} [color-scheme:dark] ${inputErrorClass(Boolean(fieldErrors.startDate))}`}
+            className={`${dashboardInput} theme-date-input ${inputErrorClass(Boolean(fieldErrors.startDate))}`}
             disabled={isSubmitting}
           />
           <FieldError message={fieldErrors.startDate} />
@@ -212,7 +212,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
             type="date"
             value={endDate}
             onChange={(event) => setEndDate(event.target.value)}
-            className={`${dashboardInput} [color-scheme:dark]`}
+            className={`${dashboardInput} theme-date-input`}
             disabled={isSubmitting}
           />
         </div>

@@ -13,10 +13,12 @@ import {
 } from "lucide-react";
 import { DsjourneyLogo } from "@/components/brand/dsjourney-logo";
 import { useSidebar } from "./sidebar-context";
-import { SidebarHeaderToggle } from "./sidebar-header-toggle";
+import { SidebarMenuToggle } from "./sidebar-menu-toggle";
 import { SidebarNav } from "./sidebar-nav";
 import { UserProfile } from "@/components/ui/user-profile";
-import type { ComponentType, CSSProperties } from "react";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { useTheme } from "@/components/theme/theme-provider";
+import { useEffect, type ComponentType, type CSSProperties } from "react";
 
 interface NavItem {
   label: string;
@@ -34,73 +36,75 @@ const navItems: NavItem[] = [
   { label: "Portfolio", href: "/portfolio", icon: FolderKanban },
 ];
 
-function SidebarBrand({ collapsed }: { collapsed: boolean }) {
-  return (
-    <Link
-      href="/today"
-      className={`sidebar-brand-link focus-ring flex items-center rounded-lg ${
-        collapsed ? "justify-center p-1" : "min-w-0 gap-3 px-1 py-1"
-      }`}
-      aria-label="DSJourney home"
-    >
-      <DsjourneyLogo variant="icon-dark" className="h-9 w-9 shrink-0" />
-      <span
-        className={`sidebar-reveal-label truncate text-sm font-semibold tracking-tight text-text-primary whitespace-nowrap ${
-          collapsed ? "sidebar-reveal-label--hidden" : ""
-        }`}
-        style={{ "--sidebar-stagger-index": 0 } as CSSProperties}
-        aria-hidden={collapsed}
-      >
-        DSJourney
-      </span>
-    </Link>
-  );
-}
-
 export function Sidebar() {
+  const { theme } = useTheme();
   const { isCollapsed, isMobileOpen, setMobileOpen, toggleCollapsed } =
     useSidebar();
   const brandCollapsed = isCollapsed && !isMobileOpen;
   const navCollapsed = isCollapsed && !isMobileOpen;
   const showDesktopToggle = !isMobileOpen;
 
+  useEffect(() => {
+    if (!isMobileOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isMobileOpen, setMobileOpen]);
+
   const sidebarContent = (
     <div className="flex h-full flex-col">
       <header
-        className={`sidebar-header relative flex h-[76px] shrink-0 items-center overflow-visible border-b border-white/[0.06] ${
-          brandCollapsed ? "justify-center px-2" : "px-3"
+        className={`sidebar-header flex h-14 shrink-0 items-center border-b border-border-subtle px-3 ${
+          brandCollapsed ? "justify-center" : "gap-3"
         }`}
       >
-        <div
-          className={`flex min-w-0 items-center ${
-            brandCollapsed
-              ? "justify-center"
-              : "min-w-0 flex-1 pr-9"
-          }`}
-        >
-          <SidebarBrand collapsed={brandCollapsed} />
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setMobileOpen(false)}
-          className="focus-ring absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-bg-surface-hover hover:text-text-primary md:hidden"
-          aria-label="Close sidebar"
-        >
-          <X size={18} />
-        </button>
-
         {showDesktopToggle && (
-          <SidebarHeaderToggle
+          <SidebarMenuToggle
             isCollapsed={isCollapsed}
             onToggle={toggleCollapsed}
           />
         )}
+
+        {!brandCollapsed && (
+          <Link
+            href="/today"
+            onClick={() => setMobileOpen(false)}
+            className="sidebar-brand-link focus-ring flex min-w-0 flex-1 items-center gap-2.5 overflow-hidden rounded-lg py-1"
+            aria-label="DSJourney home"
+          >
+            <DsjourneyLogo
+              variant={theme === "light" ? "icon" : "icon-dark"}
+              className="h-8 w-8 shrink-0"
+            />
+            <span
+              className="sidebar-reveal-label truncate text-sm font-semibold tracking-tight text-text-primary"
+              style={{ "--sidebar-stagger-index": 0 } as CSSProperties}
+            >
+              DSJourney
+            </span>
+          </Link>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setMobileOpen(false)}
+          className="focus-ring ml-auto inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-bg-surface-hover hover:text-text-primary md:hidden"
+          aria-label="Close navigation menu"
+        >
+          <X size={18} />
+        </button>
       </header>
 
       <SidebarNav items={navItems} collapsed={navCollapsed} />
 
-      <div className="overflow-visible border-t border-border-subtle px-1">
+      <div className="sidebar-footer mt-auto space-y-1 overflow-visible border-t border-border-subtle px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <ThemeToggle variant="sidebar" collapsed={navCollapsed} />
         <UserProfile collapsed={navCollapsed} />
       </div>
     </div>
@@ -110,12 +114,10 @@ export function Sidebar() {
     <>
       <aside
         className={`
-          sidebar-motion-root sidebar-transition sidebar-shell relative hidden h-full flex-shrink-0 flex-col overflow-visible border-r border-border-subtle bg-bg-sidebar md:flex
-          ${isCollapsed ? "sidebar-collapsed w-[72px]" : "sidebar-expanded w-[252px]"}
+          sidebar-motion-root sidebar-transition sidebar-shell relative hidden h-full flex-shrink-0 flex-col border-r border-border-subtle bg-bg-sidebar md:flex
+          ${isCollapsed ? "sidebar-collapsed w-[72px] overflow-visible" : "sidebar-expanded w-[252px] overflow-hidden"}
         `}
-        style={
-          { "--sidebar-stagger-max": navItems.length } as CSSProperties
-        }
+        style={{ "--sidebar-stagger-max": navItems.length } as CSSProperties}
       >
         {sidebarContent}
       </aside>
@@ -125,12 +127,16 @@ export function Sidebar() {
           className="fixed inset-0 z-40 md:hidden"
           aria-modal="true"
           role="dialog"
+          aria-label="Navigation menu"
         >
           <div
             className="absolute inset-0 bg-bg-overlay"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="relative z-50 flex h-full w-[260px] flex-col overflow-visible border-r border-border-subtle bg-bg-sidebar">
+          <aside
+            id="mobile-sidebar"
+            className="relative z-50 flex h-full w-[252px] flex-col overflow-hidden border-r border-border-subtle bg-bg-sidebar"
+          >
             {sidebarContent}
           </aside>
         </div>

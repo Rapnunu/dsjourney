@@ -43,14 +43,14 @@ export function FeatureSection() {
   return (
     <section
       id="features"
-      className="relative border-t border-white/10 bg-[#060d16] py-20 sm:py-24"
+      className="relative border-t border-border-subtle bg-bg-primary py-20 sm:py-24"
     >
       <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
         <AnimatedContent distance={16} duration={0.7} threshold={0.12}>
-          <h2 className="text-3xl font-bold text-white sm:text-4xl">
+          <h2 className="text-3xl font-bold text-text-primary sm:text-4xl">
             What DSJourney Tracks
           </h2>
-          <p className="mt-3 max-w-2xl text-white/65">
+          <p className="mt-3 max-w-2xl text-text-secondary">
             Everything you need to stay intentional about your Data Science
             preparation.
           </p>
@@ -61,12 +61,12 @@ export function FeatureSection() {
             const Icon = feature.icon;
             return (
               <ScrollReveal key={feature.title} delayMs={index * 70}>
-                <article className="landing-card-hover h-full rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-6">
+                <article className="landing-card-hover h-full rounded-2xl border border-border-subtle bg-gradient-to-b from-bg-elevated/80 to-transparent p-6">
                   <div className="mb-4 inline-flex rounded-xl bg-brand-teal/10 p-3 text-brand-cyan">
                     <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/60">
+                  <h3 className="text-lg font-semibold text-text-primary">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-text-secondary">
                     {feature.description}
                   </p>
                 </article>
