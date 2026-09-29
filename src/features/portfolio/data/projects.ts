@@ -80,7 +80,7 @@ export const mockProjects: Project[] = [
     status: "in_progress",
     technologies: ["Next.js", "TypeScript", "React", "Tailwind CSS", "Git", "GitHub"],
     githubUrl: "https://github.com/Rapnunu/ds-prep-tracker",
-    demoUrl: "https://ds-prep-tracker.vercel.app",
+    demoUrl: "https://dsjourney.vercel.app",
     highlights: [
       "Built 6 interactive dashboard pages",
       "Implemented animated SVG progress visualizations",
