@@ -3,9 +3,11 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { DASHBOARD_SCROLL_ID } from "@/components/dashboard/constants";
+import { SessionTimeoutProvider } from "@/components/auth/session-timeout-provider";
 import { SessionProvider } from "@/features/sessions/session-provider";
 import { RoadmapProvider } from "@/features/roadmap/roadmap-provider";
 import { PortfolioProvider } from "@/features/portfolio/portfolio-provider";
+import { isAuthenticatedAppRoute } from "@/lib/public-routes";
 import { Sidebar } from "./sidebar";
 import { MobileNavTrigger } from "./mobile-nav-trigger";
 
@@ -29,17 +31,19 @@ function AuthenticatedShell({ children }: { children: ReactNode }) {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
-  if (pathname === "/" || pathname.startsWith("/auth")) {
+  if (!isAuthenticatedAppRoute(pathname)) {
     return <>{children}</>;
   }
 
   return (
-    <SessionProvider>
-      <RoadmapProvider>
-        <PortfolioProvider>
-          <AuthenticatedShell>{children}</AuthenticatedShell>
-        </PortfolioProvider>
-      </RoadmapProvider>
-    </SessionProvider>
+    <SessionTimeoutProvider>
+      <SessionProvider>
+        <RoadmapProvider>
+          <PortfolioProvider>
+            <AuthenticatedShell>{children}</AuthenticatedShell>
+          </PortfolioProvider>
+        </RoadmapProvider>
+      </SessionProvider>
+    </SessionTimeoutProvider>
   );
 }

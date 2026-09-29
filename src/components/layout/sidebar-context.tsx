@@ -56,9 +56,10 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   const toggleCollapsed = useCallback(() => {
     try {
+      const nextCollapsed = !getSidebarSnapshot();
       localStorage.setItem(
         SIDEBAR_STORAGE_KEY,
-        JSON.stringify(!getSidebarSnapshot()),
+        nextCollapsed ? "true" : "false",
       );
       window.dispatchEvent(new Event(SIDEBAR_CHANGE_EVENT));
     } catch {

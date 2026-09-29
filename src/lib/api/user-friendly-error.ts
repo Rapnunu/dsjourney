@@ -1,4 +1,4 @@
-import { ApiError } from "./api-error";
+import { getApiErrorRetryAfterSeconds, isApiError } from "./api-error";
 
 export interface UserFriendlyError {
   title: string;
@@ -25,7 +25,7 @@ export function getUserFriendlyApiError(
     };
   }
 
-  if (error instanceof ApiError) {
+  if (isApiError(error)) {
     switch (error.status) {
       case 400:
         return {
@@ -59,6 +59,18 @@ export function getUserFriendlyApiError(
           title: "Import too large",
           description: "The file or data set is too large to import.",
         };
+      case 429: {
+        const retryAfterSeconds = getApiErrorRetryAfterSeconds(error);
+        const retryHint =
+          typeof retryAfterSeconds === "number"
+            ? `You can try again in about ${retryAfterSeconds} seconds.`
+            : "Please wait a moment and try again.";
+
+        return {
+          title: "Too many requests",
+          description: retryHint,
+        };
+      }
       default:
         if (error.status >= 500) {
           return {

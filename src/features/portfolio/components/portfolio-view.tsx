@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ProviderErrorBanner } from "@/components/ui/provider-error-banner";
 import { FolderKanban, Plus } from "lucide-react";
-import { showFriendlyError, showSuccessToast } from "@/lib/toast";
+import { handleMutationResult } from "@/lib/api/mutation-result";
 import { PortfolioOverview } from "./portfolio-overview";
 import { FeaturedProjects } from "./featured-projects";
 import { SkillsDemonstrated } from "./skills-demonstrated";
@@ -59,32 +59,20 @@ export function PortfolioView() {
 
   async function handleSubmit(project: ProjectInput) {
     if (editingProject) {
-      const saved = await updateProject(editingProject.id, project);
-      if (saved) {
-        showSuccessToast("Project updated", "Your portfolio project was saved.");
+      const result = await updateProject(editingProject.id, project);
+      if (handleMutationResult(result, "update", "Project updated")) {
         closeForm();
-      } else {
-        showFriendlyError(new Error("save failed"), "update", {
-          title: "Couldn't save project",
-          description:
-            "Something went wrong while saving your changes. Please try again.",
-        });
+        return true;
       }
-      return saved;
+      return false;
     }
 
-    const saved = await addProject(project);
-    if (saved) {
-      showSuccessToast("Project added", "Your new project is now in your portfolio.");
+    const result = await addProject(project);
+    if (handleMutationResult(result, "save", "Project added")) {
       closeForm();
-    } else {
-      showFriendlyError(new Error("save failed"), "save", {
-        title: "Couldn't save project",
-        description:
-          "Something went wrong while saving your changes. Please try again.",
-      });
+      return true;
     }
-    return saved;
+    return false;
   }
 
   function requestDelete(project: Project) {
@@ -95,20 +83,15 @@ export function PortfolioView() {
     if (!deleteTarget) return;
 
     setIsDeleting(true);
-    const deleted = await deleteProject(deleteTarget.id);
+    const result = await deleteProject(deleteTarget.id);
     setIsDeleting(false);
 
-    if (deleted) {
-      showSuccessToast("Project deleted", `"${deleteTarget.title}" was removed.`);
+    if (result.ok) {
       if (editingProject?.id === deleteTarget.id) closeForm();
       setDeleteTarget(null);
-      return;
     }
 
-    showFriendlyError(new Error("delete failed"), "delete", {
-      title: "Couldn't delete project",
-      description: "Something went wrong while deleting this project. Please try again.",
-    });
+    handleMutationResult(result, "delete", "Project deleted");
   }
 
   return (

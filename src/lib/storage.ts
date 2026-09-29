@@ -173,3 +173,28 @@ export function completeStoredPortfolioMigration(): void {
     console.warn("Failed to finalize the local Portfolio migration.");
   }
 }
+
+const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
+
+const DSJOURNEY_LOCAL_KEYS = [
+  SESSIONS_KEY,
+  SESSIONS_MIGRATION_KEY,
+  ROADMAP_KEY,
+  ROADMAP_MIGRATION_KEY,
+  PORTFOLIO_KEY,
+  PORTFOLIO_MIGRATION_KEY,
+  SIDEBAR_COLLAPSED_KEY,
+] as const;
+
+/** Removes DSJourney-owned browser state after intentional account deletion. */
+export function clearUserLocalState(): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    for (const key of DSJOURNEY_LOCAL_KEYS) {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    console.warn("Failed to clear local DSJourney state.");
+  }
+}

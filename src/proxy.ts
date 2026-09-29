@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { auth } from "@/lib/auth/server";
+import { isPublicBypassRoute } from "@/lib/public-routes";
 
 const neonAuthMiddleware = auth.middleware({
   loginUrl: "/auth",
@@ -8,7 +9,7 @@ const neonAuthMiddleware = auth.middleware({
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/" || request.headers.has("Next-Action")) {
+  if (isPublicBypassRoute(pathname) || request.headers.has("Next-Action")) {
     return;
   }
 

@@ -1,0 +1,70 @@
+.contactHero {
+  padding-top: 2.25rem;
+  padding-bottom: 2.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #18b8c6;
+}
+
+.title {
+  margin-top: 0.75rem;
+  max-width: 18ch;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 650;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: #f4f7fa;
+}
+
+.description {
+  margin-top: 1rem;
+  max-width: 42rem;
+  font-size: clamp(1rem, 2.2vw, 1.125rem);
+  line-height: 1.65;
+  color: #98a6b8;
+}
+
+.subdescription {
+  margin-top: 0.75rem;
+  max-width: 42rem;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #667586;
+}
+
+.contentArea {
+  padding-top: 2.5rem;
+  padding-bottom: 4rem;
+}
+
+.contentWrap {
+  max-width: 48.75rem;
+}
+
+@media (min-width: 640px) {
+  .contactHero {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .contentArea {
+    padding-top: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .contactHero {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+
+  .contentArea {
+    padding-top: 3.5rem;
+  }
+}

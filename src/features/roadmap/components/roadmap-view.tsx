@@ -3,11 +3,12 @@
 import { useState, useMemo, useCallback } from "react";
 import { Search, X } from "lucide-react";
 import CountUp from "@/components/react-bits/CountUp";
-import { mockRoadmapData } from "../data";
+import { getMasteryDistribution } from "@/features/today/data";
+import { roadmapCatalogData } from "../data";
 import { useRoadmapStore } from "../roadmap-provider";
 import { DashboardScrollReveal } from "@/components/dashboard";
+import { handleRoadmapMutationResult } from "@/lib/api/mutation-result";
 import { ProviderErrorBanner } from "@/components/ui/provider-error-banner";
-import { showFriendlyError, showSuccessToast } from "@/lib/toast";
 import { CategoryCard } from "./category-card";
 import type { MasteryLevel } from "../types";
 import {
@@ -30,11 +31,12 @@ export function RoadmapView() {
     roadmap: categories,
     isHydrated,
     error,
+    pendingTopicIds,
     reload,
     updateMastery,
   } = useRoadmapStore();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
-    () => new Set([mockRoadmapData[0]?.id])
+    () => new Set([roadmapCatalogData[0]?.id])
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [masteryFilter, setMasteryFilter] = useState<MasteryFilter>("all");
@@ -53,16 +55,8 @@ export function RoadmapView() {
 
   const handleMasteryChange = useCallback(
     async (topicId: string, level: MasteryLevel) => {
-      const saved = await updateMastery(topicId, level);
-      if (saved) {
-        showSuccessToast("Roadmap progress updated");
-      } else {
-        showFriendlyError(new Error("update failed"), "update", {
-          title: "Couldn't save changes",
-          description:
-            "Something went wrong while updating roadmap progress. Please try again.",
-        });
-      }
+      const result = await updateMastery(topicId, level);
+      handleRoadmapMutationResult(result);
     },
     [updateMastery],
   );
@@ -99,15 +93,10 @@ export function RoadmapView() {
     const allTopics = categories.flatMap((c) => c.topics);
     const total = allTopics.length;
 
-    const counts: Record<MasteryLevel, number> = {
-      not_started: 0,
-      learning: 0,
-      practiced: 0,
-      mastered: 0,
-    };
-    allTopics.forEach((t) => {
-      counts[t.mastery]++;
-    });
+    const distribution = getMasteryDistribution(categories);
+    const counts = Object.fromEntries(
+      distribution.map((segment) => [segment.level, segment.count]),
+    ) as Record<MasteryLevel, number>;
 
     const readiness =
       total > 0
@@ -259,6 +248,7 @@ export function RoadmapView() {
                 isExpanded={expandedIds.has(category.id)}
                 onToggle={() => toggleCategory(category.id)}
                 onMasteryChange={handleMasteryChange}
+                pendingTopicIds={pendingTopicIds}
               />
             </DashboardScrollReveal>
           ))

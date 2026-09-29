@@ -1,0 +1,97 @@
+.mobileToc {
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: #101720;
+}
+
+.mobileSummary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f4f7fa;
+}
+
+.mobileSummary::-webkit-details-marker {
+  display: none;
+}
+
+.mobileSummary::after {
+  content: "▾";
+  float: right;
+  color: #667586;
+}
+
+.mobileNav {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.75rem 1rem 1rem;
+}
+
+.desktopToc {
+  display: none;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  color: #98a6b8;
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.link:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: #f4f7fa;
+}
+
+.linkNumber {
+  flex-shrink: 0;
+  width: 1.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #18b8c6;
+}
+
+.linkLabel {
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.desktopLabel {
+  margin-bottom: 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #667586;
+}
+
+@media (min-width: 1024px) {
+  .mobileToc {
+    display: none;
+  }
+
+  .desktopToc {
+    display: block;
+    position: sticky;
+    top: 2rem;
+    align-self: start;
+  }
+}

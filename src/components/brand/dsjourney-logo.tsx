@@ -7,6 +7,8 @@ interface DsjourneyLogoProps extends SVGProps<SVGSVGElement> {
   variant?: LogoVariant;
   showTagline?: boolean;
   tone?: LogoTone;
+  /** Light DS lettering for large auth-panel mark on dark backgrounds. */
+  brightDsLetters?: boolean;
 }
 
 function JourneyGradientDef({ id }: { id: string }) {
@@ -91,6 +93,7 @@ export function DsjourneyLogo({
   variant = "horizontal",
   showTagline = false,
   tone = "default",
+  brightDsLetters = false,
   className,
   ...props
 }: DsjourneyLogoProps) {
@@ -143,8 +146,20 @@ export function DsjourneyLogo({
           <JourneyGradientDef id={gradientId} />
         </defs>
         <DsLetters
-          primary={isPublic ? "#1e3a5f" : "#12304A"}
-          secondary={isPublic ? "#0f2744" : "#0D1B2A"}
+          primary={
+            brightDsLetters
+              ? "#F4F7FA"
+              : isPublic
+                ? "#1e3a5f"
+                : "#12304A"
+          }
+          secondary={
+            brightDsLetters
+              ? "#E2E8F0"
+              : isPublic
+                ? "#0f2744"
+                : "#0D1B2A"
+          }
         />
         <JourneyPath gradientId={gradientId} useGradient={isPublic} />
       </svg>

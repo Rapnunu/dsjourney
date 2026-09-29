@@ -1,13 +1,9 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LandingPage } from "@/components/landing/landing-page";
 import { auth } from "@/lib/auth/server";
+import { createHomeMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "DSJourney",
-  description:
-    "Track your Data Science learning journey, study progress, portfolio, analytics, and career readiness.",
-};
+export const metadata = createHomeMetadata();
 
 export const dynamic = "force-dynamic";
 

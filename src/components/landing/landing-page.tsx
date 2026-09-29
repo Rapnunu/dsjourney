@@ -1,7 +1,9 @@
 import { FeatureSection } from "@/components/landing/feature-section";
+import { FaqSection } from "@/components/landing/faq-section";
 import { JourneySection } from "@/components/landing/journey-section";
 import { LandingHero } from "@/components/landing/landing-hero";
 import { ProgressSection } from "@/components/landing/progress-section";
+import { PublicFooter } from "@/components/public/public-footer";
 
 export function LandingPage() {
   return (
@@ -10,12 +12,11 @@ export function LandingPage() {
         <LandingHero />
         <JourneySection />
         <FeatureSection />
+        <FaqSection />
         <ProgressSection />
       </main>
 
-      <footer className="border-t border-white/10 bg-black px-5 py-8 text-center text-sm text-white/40">
-        <p>DSJourney — Your Data Science Journey Starts Here</p>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }

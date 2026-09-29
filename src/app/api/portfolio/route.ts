@@ -1,5 +1,6 @@
 import { requireUser } from "@/lib/auth/require-user";
 import { readJsonBody } from "@/lib/api/parse-json";
+import { enforceRateLimit } from "@/lib/api/rate-limit";
 import {
   handleRouteError,
   jsonData,
@@ -26,6 +27,12 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const user = await requireUser();
+    const rateLimitResponse = await enforceRateLimit(user.id, "mutation");
+
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const body = await readJsonBody(request);
     const parsed = parseProjectInput(body);
 

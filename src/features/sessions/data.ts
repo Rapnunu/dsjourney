@@ -1,8 +1,8 @@
 import type { StudySession, TopicOption } from "./types";
-import { mockRoadmapData } from "../roadmap/data";
+import { roadmapCatalogData } from "../roadmap/data";
 
 // Build flat topic list from roadmap data
-export const topicOptions: TopicOption[] = mockRoadmapData.flatMap((cat) =>
+export const topicOptions: TopicOption[] = roadmapCatalogData.flatMap((cat) =>
   cat.topics.map((t) => ({
     id: t.id,
     name: t.name,

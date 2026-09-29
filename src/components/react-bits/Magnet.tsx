@@ -14,10 +14,13 @@ interface MagnetProps extends HTMLAttributes<HTMLDivElement> {
   padding?: number;
   disabled?: boolean;
   magnetStrength?: number;
+  maxOffset?: number;
+  activeScale?: number;
   activeTransition?: string;
   inactiveTransition?: string;
   wrapperClassName?: string;
   innerClassName?: string;
+  activeInnerClassName?: string;
 }
 
 const Magnet: React.FC<MagnetProps> = ({
@@ -25,10 +28,13 @@ const Magnet: React.FC<MagnetProps> = ({
   padding = 100,
   disabled = false,
   magnetStrength = 2,
+  maxOffset = 5,
+  activeScale = 1,
   activeTransition = "transform 0.3s ease-out",
   inactiveTransition = "transform 0.5s ease-in-out",
   wrapperClassName = "",
   innerClassName = "",
+  activeInnerClassName = "",
   ...props
 }) => {
   const reducedMotion = usePrefersReducedMotion();
@@ -56,8 +62,8 @@ const Magnet: React.FC<MagnetProps> = ({
         const rawX = (e.clientX - centerX) / magnetStrength;
         const rawY = (e.clientY - centerY) / magnetStrength;
         setPosition({
-          x: Math.max(-5, Math.min(5, rawX)),
-          y: Math.max(-5, Math.min(5, rawY)),
+          x: Math.max(-maxOffset, Math.min(maxOffset, rawX)),
+          y: Math.max(-maxOffset, Math.min(maxOffset, rawY)),
         });
       } else {
         setIsActive(false);
@@ -67,10 +73,17 @@ const Magnet: React.FC<MagnetProps> = ({
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [padding, isDisabled, magnetStrength]);
+  }, [padding, isDisabled, magnetStrength, maxOffset]);
 
   const transitionStyle = isActive ? activeTransition : inactiveTransition;
   const displayPosition = isDisabled ? { x: 0, y: 0 } : position;
+  const scale = !isDisabled && isActive && activeScale !== 1 ? activeScale : 1;
+  const innerClassNames = [
+    innerClassName,
+    !isDisabled && isActive ? activeInnerClassName : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div
@@ -80,11 +93,11 @@ const Magnet: React.FC<MagnetProps> = ({
       {...props}
     >
       <div
-        className={innerClassName}
+        className={innerClassNames || undefined}
         style={{
           transform: isDisabled
             ? undefined
-            : `translate3d(${displayPosition.x}px, ${displayPosition.y}px, 0)`,
+            : `translate3d(${displayPosition.x}px, ${displayPosition.y}px, 0) scale(${scale})`,
           transition: isDisabled ? undefined : transitionStyle,
           willChange: isDisabled ? undefined : "transform",
         }}

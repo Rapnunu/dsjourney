@@ -1,22 +1,22 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { SidebarProvider } from "@/components/layout/sidebar-context";
 import { AppShell } from "@/components/layout/app-shell";
 import { AppToaster } from "@/components/ui/app-toaster";
+import { createRootMetadata } from "@/lib/metadata";
+import { THEME_COLOR } from "@/lib/site-config";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "DSJourney",
-    template: "%s | DSJourney",
-  },
-  description:
-    "Track your Data Science learning journey, study progress, portfolio, analytics, and career readiness.",
+export const metadata: Metadata = createRootMetadata();
+
+export const viewport: Viewport = {
+  themeColor: THEME_COLOR,
+  colorScheme: "dark",
 };
 
 export default function RootLayout({

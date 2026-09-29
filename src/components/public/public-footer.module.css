@@ -1,0 +1,60 @@
+.footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #070b12;
+  padding: 2rem 1.25rem 2.5rem;
+}
+
+.footerInner {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.footerBrand {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f4f7fa;
+}
+
+.footerTagline {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #667586;
+}
+
+.footerNav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+}
+
+.footerNav a {
+  font-size: 0.875rem;
+  color: #98a6b8;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.footerNav a:hover {
+  color: #18b8c6;
+}
+
+.copyright {
+  font-size: 0.8125rem;
+  color: #667586;
+}
+
+@media (min-width: 640px) {
+  .footer {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer {
+    padding-inline: 2rem;
+  }
+}

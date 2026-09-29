@@ -6,7 +6,7 @@ import { DashboardScrollReveal, MetricCard } from "@/components/dashboard";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ProviderErrorBanner } from "@/components/ui/provider-error-banner";
 import { computeStreak } from "@/features/today/data";
-import { showFriendlyError, showSuccessToast } from "@/lib/toast";
+import { handleMutationResult } from "@/lib/api/mutation-result";
 import { SessionForm } from "./session-form";
 import { SessionTable } from "./session-table";
 import { topicOptions } from "../data";
@@ -68,31 +68,16 @@ export function SessionsView() {
 
   const handleSubmit = async (data: Omit<StudySession, "id" | "createdAt">) => {
     if (editingSession) {
-      const saved = await updateSession(editingSession.id, data);
-      if (saved) {
-        showSuccessToast("Study session updated", "Your session changes were saved.");
+      const result = await updateSession(editingSession.id, data);
+      if (handleMutationResult(result, "update", "Study session updated")) {
         setEditingSession(null);
-      } else {
-        showFriendlyError(new Error("update failed"), "update", {
-          title: "Couldn't save session",
-          description:
-            "Something went wrong while saving your study session. Please try again.",
-        });
+        return true;
       }
-      return saved;
+      return false;
     }
 
-    const saved = await addSession(data);
-    if (saved) {
-      showSuccessToast("Study session logged", "Your study session was added to your history.");
-    } else {
-      showFriendlyError(new Error("create failed"), "save", {
-        title: "Couldn't log session",
-        description:
-          "Something went wrong while logging your study session. Please try again.",
-      });
-    }
-    return saved;
+    const result = await addSession(data);
+    return handleMutationResult(result, "save", "Study session logged");
   };
 
   const handleEdit = (session: StudySession) => {
@@ -108,23 +93,17 @@ export function SessionsView() {
     if (!deleteSessionId) return;
 
     setIsDeleting(true);
-    const deleted = await deleteSession(deleteSessionId);
+    const result = await deleteSession(deleteSessionId);
     setIsDeleting(false);
 
-    if (deleted) {
-      showSuccessToast("Study session deleted", "The session was removed from your history.");
+    if (result.ok) {
       if (editingSession?.id === deleteSessionId) {
         setEditingSession(null);
       }
       setDeleteSessionId(null);
-      return;
     }
 
-    showFriendlyError(new Error("delete failed"), "delete", {
-      title: "Couldn't delete session",
-      description:
-        "Something went wrong while deleting this study session. Please try again.",
-    });
+    handleMutationResult(result, "delete", "Study session deleted");
   };
 
   const handleCancelEdit = () => {

@@ -8,6 +8,7 @@ import { MasteryPills } from "./mastery-pills";
 interface TopicRowProps {
   topic: RoadmapTopic;
   onMasteryChange: (topicId: string, level: MasteryLevel) => void;
+  isPending?: boolean;
   isLast: boolean;
 }
 
@@ -19,7 +20,12 @@ function formatDate(dateStr: string): string {
   });
 }
 
-export function TopicRow({ topic, onMasteryChange, isLast }: TopicRowProps) {
+export function TopicRow({
+  topic,
+  onMasteryChange,
+  isPending = false,
+  isLast,
+}: TopicRowProps) {
   const diffConfig = DIFFICULTY_CONFIG[topic.difficulty];
 
   return (
@@ -77,6 +83,7 @@ export function TopicRow({ topic, onMasteryChange, isLast }: TopicRowProps) {
         <MasteryPills
           currentLevel={topic.mastery}
           onSelect={(level) => onMasteryChange(topic.id, level)}
+          isPending={isPending}
         />
       </div>
     </div>

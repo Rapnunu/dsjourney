@@ -102,6 +102,27 @@ export const portfolioProjects = pgTable(
   ],
 );
 
+export const apiRateLimits = pgTable(
+  "api_rate_limits",
+  {
+    userId: uuid("user_id").notNull(),
+    bucketKey: text("bucket_key").notNull(),
+    windowStart: timestamp("window_start", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    requestCount: smallint("request_count").notNull().default(1),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.userId, table.bucketKey, table.windowStart],
+    }),
+    check("api_rate_limits_bucket_key_not_blank", sql`btrim(${table.bucketKey}) <> ''`),
+    check("api_rate_limits_request_count_positive", sql`${table.requestCount} > 0`),
+    index("api_rate_limits_window_start_idx").on(table.windowStart),
+  ],
+);
+
 export type StudySessionRow = typeof studySessions.$inferSelect;
 export type StudySessionInsert = typeof studySessions.$inferInsert;
 export type RoadmapProgressRow = typeof roadmapProgress.$inferSelect;

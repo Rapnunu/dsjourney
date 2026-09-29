@@ -9,16 +9,15 @@ import {
   type ReactNode,
 } from "react";
 import {
-  completeStoredSessionsMigration,
-  getStoredSessions,
-  isStoredSessionsMigrationComplete,
-} from "@/lib/storage";
-import {
   getUserFriendlyApiError,
   type UserFriendlyError,
 } from "@/lib/api/user-friendly-error";
 import {
-  bulkImportSessionsRequest,
+  mutationFailed,
+  mutationOk,
+  type MutationResult,
+} from "@/lib/api/mutation-result";
+import {
   createSessionRequest,
   deleteSessionRequest,
   fetchSessions,
@@ -33,9 +32,9 @@ interface SessionContextType {
   isHydrated: boolean;
   error: UserFriendlyError | null;
   reload: () => Promise<void>;
-  addSession: (data: SessionInput) => Promise<boolean>;
-  updateSession: (id: string, data: SessionInput) => Promise<boolean>;
-  deleteSession: (id: string) => Promise<boolean>;
+  addSession: (data: SessionInput) => Promise<MutationResult>;
+  updateSession: (id: string, data: SessionInput) => Promise<MutationResult>;
+  deleteSession: (id: string) => Promise<MutationResult>;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -67,17 +66,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        let loaded = await fetchSessions();
-
-        if (loaded.length > 0) {
-          completeStoredSessionsMigration();
-        } else if (!isStoredSessionsMigrationComplete()) {
-          const stored = getStoredSessions();
-          if (stored && stored.length > 0) {
-            loaded = await bulkImportSessionsRequest(stored);
-            completeStoredSessionsMigration();
-          }
-        }
+        const loaded = await fetchSessions();
 
         if (isActive) {
           setSessions(sortSessions(loaded));
@@ -104,9 +93,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const created = await createSessionRequest(data);
       setSessions((previous) => sortSessions([created, ...previous]));
       setError(null);
-      return true;
-    } catch {
-      return false;
+      return mutationOk();
+    } catch (createError) {
+      return mutationFailed(createError);
     }
   }, []);
 
@@ -119,9 +108,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         ),
       );
       setError(null);
-      return true;
-    } catch {
-      return false;
+      return mutationOk();
+    } catch (updateError) {
+      return mutationFailed(updateError);
     }
   }, []);
 
@@ -130,9 +119,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       await deleteSessionRequest(id);
       setSessions((previous) => previous.filter((session) => session.id !== id));
       setError(null);
-      return true;
-    } catch {
-      return false;
+      return mutationOk();
+    } catch (deleteError) {
+      return mutationFailed(deleteError);
     }
   }, []);
 

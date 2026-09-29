@@ -5,114 +5,248 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
-import {
-  completeStoredRoadmapMigration,
-  getStoredRoadmap,
-  isStoredRoadmapMigrationComplete,
-} from "@/lib/storage";
-import type { RoadmapProgressRecord } from "@/lib/repositories/roadmap";
 import {
   getUserFriendlyApiError,
   type UserFriendlyError,
 } from "@/lib/api/user-friendly-error";
 import {
-  bulkImportRoadmapProgressRequest,
+  mutationFailed,
+  mutationOk,
+  type MutationResult,
+} from "@/lib/api/mutation-result";
+import {
   deleteRoadmapProgressOverrideRequest,
   fetchRoadmapProgress,
   upsertRoadmapProgressRequest,
 } from "./api";
-import { mockRoadmapData } from "./data";
-import type {
-  MasteryLevel,
-  RoadmapCategory,
-  RoadmapTopic,
-} from "./types";
+import {
+  applyMasteryUpdate,
+  assertCatalogInvariant,
+  ensureCatalogIntegrity,
+  mergeProgress,
+  seedPersistedProgressFromRecords,
+  topicExistsInCatalog,
+  type PersistedTopicProgress,
+} from "./roadmap-catalog";
+import type { MasteryLevel, RoadmapCategory } from "./types";
+
+interface TopicMutationQueue {
+  desiredMastery: MasteryLevel | null;
+  draining: boolean;
+  waiters: Array<(result: MutationResult) => void>;
+}
+
+function consumeLatestIntent(queue: TopicMutationQueue): MasteryLevel | null {
+  if (queue.desiredMastery === null) {
+    return null;
+  }
+
+  let latest = queue.desiredMastery;
+  queue.desiredMastery = null;
+
+  while (queue.desiredMastery !== null) {
+    latest = queue.desiredMastery;
+    queue.desiredMastery = null;
+  }
+
+  return latest;
+}
 
 interface RoadmapContextType {
   roadmap: RoadmapCategory[];
   isHydrated: boolean;
   error: UserFriendlyError | null;
+  pendingTopicIds: ReadonlySet<string>;
   reload: () => Promise<void>;
   updateMastery: (
     topicId: string,
     mastery: MasteryLevel,
-  ) => Promise<boolean>;
+  ) => Promise<MutationResult>;
 }
 
 const RoadmapContext = createContext<RoadmapContextType | undefined>(undefined);
 
-function cloneDefaultRoadmap(): RoadmapCategory[] {
-  return mockRoadmapData.map((category) => ({
-    ...category,
-    topics: category.topics.map((topic) => ({ ...topic })),
-  }));
-}
-
-function mergeProgress(records: RoadmapProgressRecord[]): RoadmapCategory[] {
-  const progressByTopic = new Map(records.map((row) => [row.topicId, row]));
-
-  return cloneDefaultRoadmap().map((category) => ({
-    ...category,
-    topics: category.topics.map((topic) => {
-      const progress = progressByTopic.get(topic.id);
-      if (!progress) return topic;
-
-      return {
-        ...topic,
-        mastery: progress.mastery,
-        ...(progress.lastStudied ? { lastStudied: progress.lastStudied } : {}),
-      };
-    }),
-  }));
-}
-
-function getDefaultTopics(): Map<string, RoadmapTopic> {
-  return new Map(
-    mockRoadmapData.flatMap((category) =>
-      category.topics.map((topic) => [topic.id, topic] as const),
-    ),
-  );
-}
-
-function getLegacyProgress(roadmap: RoadmapCategory[]) {
-  const defaults = getDefaultTopics();
-
-  return roadmap.flatMap((category) =>
-    category.topics.flatMap((topic) => {
-      const defaultTopic = defaults.get(topic.id);
-      if (!defaultTopic) return [];
-
-      const differsFromDefault =
-        topic.mastery !== defaultTopic.mastery ||
-        topic.lastStudied !== defaultTopic.lastStudied;
-      if (!differsFromDefault) return [];
-
-      return [
-        {
-          topicId: topic.id,
-          mastery: topic.mastery,
-          lastStudied: topic.lastStudied ?? null,
-        },
-      ];
-    }),
-  );
+function getPersistedMastery(
+  persistedProgress: Map<string, PersistedTopicProgress>,
+  topicId: string,
+): MasteryLevel {
+  return persistedProgress.get(topicId)?.mastery ?? "not_started";
 }
 
 export function RoadmapProvider({ children }: { children: ReactNode }) {
-  const [roadmap, setRoadmap] = useState<RoadmapCategory[]>([]);
+  const [roadmap, setRoadmapState] = useState<RoadmapCategory[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
   const [error, setError] = useState<UserFriendlyError | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [pendingTopicIds, setPendingTopicIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+
+  const topicQueuesRef = useRef(new Map<string, TopicMutationQueue>());
+  const persistedProgressRef = useRef(new Map<string, PersistedTopicProgress>());
+  const pendingTopicIdsRef = useRef(new Set<string>());
+
+  const setRoadmap = useCallback(
+    (updater: (previous: RoadmapCategory[]) => RoadmapCategory[]) => {
+      setRoadmapState((previous) => {
+        const base = ensureCatalogIntegrity(previous);
+        const next = ensureCatalogIntegrity(updater(base));
+        assertCatalogInvariant(next);
+        return next;
+      });
+    },
+    [],
+  );
+
+  const markTopicPending = useCallback((topicId: string, pending: boolean) => {
+    const next = new Set(pendingTopicIdsRef.current);
+
+    if (pending) {
+      next.add(topicId);
+    } else {
+      next.delete(topicId);
+    }
+
+    pendingTopicIdsRef.current = next;
+    setPendingTopicIds(next);
+  }, []);
+
+  const rollbackTopicToPersisted = useCallback(
+    (topicId: string) => {
+      const persisted = persistedProgressRef.current.get(topicId);
+      const mastery = getPersistedMastery(persistedProgressRef.current, topicId);
+
+      setRoadmap((previous) =>
+        applyMasteryUpdate(previous, topicId, mastery, persisted?.lastStudied),
+      );
+    },
+    [setRoadmap],
+  );
+
+  const reconcileProgressFromServer = useCallback(async () => {
+    try {
+      const records = await fetchRoadmapProgress();
+      persistedProgressRef.current = seedPersistedProgressFromRecords(records);
+      setRoadmap(() => mergeProgress(records));
+      setError(null);
+    } catch {
+      setRoadmap((previous) => ensureCatalogIntegrity(previous));
+    }
+  }, [setRoadmap]);
+
+  const runTopicDrain = useCallback(
+    async (topicId: string) => {
+      const queue = topicQueuesRef.current.get(topicId);
+      if (!queue) return;
+
+      markTopicPending(topicId, true);
+      let lastResult: MutationResult = mutationOk();
+
+      try {
+        while (true) {
+          const target = consumeLatestIntent(queue);
+          if (target === null) break;
+
+          const persistedMastery = getPersistedMastery(
+            persistedProgressRef.current,
+            topicId,
+          );
+
+          if (target === persistedMastery) {
+            lastResult = mutationOk();
+            continue;
+          }
+
+          const persistedEntry = persistedProgressRef.current.get(topicId);
+          const rollbackLastStudied = persistedEntry?.lastStudied;
+
+          try {
+            if (target === "not_started") {
+              await deleteRoadmapProgressOverrideRequest(topicId);
+              persistedProgressRef.current.delete(topicId);
+            } else {
+              const record = await upsertRoadmapProgressRequest(
+                topicId,
+                target,
+                rollbackLastStudied ?? null,
+              );
+
+              persistedProgressRef.current.set(topicId, {
+                mastery: target,
+                ...(record.lastStudied ? { lastStudied: record.lastStudied } : {}),
+              });
+            }
+
+            setError(null);
+            lastResult = mutationOk();
+          } catch (updateError) {
+            rollbackTopicToPersisted(topicId);
+            queue.desiredMastery = null;
+            lastResult = mutationFailed(updateError);
+            await reconcileProgressFromServer();
+            break;
+          }
+        }
+      } finally {
+        markTopicPending(topicId, false);
+        queue.draining = false;
+
+        const waiters = queue.waiters.splice(0);
+        for (const resolve of waiters) {
+          resolve(lastResult);
+        }
+
+        if (queue.desiredMastery !== null && !queue.draining) {
+          queue.draining = true;
+          void runTopicDrain(topicId);
+        }
+      }
+    },
+    [markTopicPending, reconcileProgressFromServer, rollbackTopicToPersisted],
+  );
+
+  const enqueueTopicMutation = useCallback(
+    (topicId: string, mastery: MasteryLevel): Promise<MutationResult> => {
+      return new Promise((resolve) => {
+        let queue = topicQueuesRef.current.get(topicId);
+
+        if (!queue) {
+          queue = {
+            desiredMastery: null,
+            draining: false,
+            waiters: [],
+          };
+          topicQueuesRef.current.set(topicId, queue);
+        }
+
+        queue.desiredMastery = mastery;
+        queue.waiters.push(resolve);
+
+        if (!queue.draining) {
+          queue.draining = true;
+          void runTopicDrain(topicId);
+        }
+      });
+    },
+    [runTopicDrain],
+  );
 
   const reload = useCallback(async () => {
+    topicQueuesRef.current.clear();
+    pendingTopicIdsRef.current.clear();
+    setPendingTopicIds(new Set());
     setIsHydrated(false);
     setReloadToken((token) => token + 1);
   }, []);
 
   useEffect(() => {
+    topicQueuesRef.current.clear();
+    pendingTopicIdsRef.current.clear();
+
     let isActive = true;
 
     async function loadRoadmap() {
@@ -121,40 +255,17 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        let records = await fetchRoadmapProgress();
-        let resolvedRoadmap = mergeProgress(records);
-
-        if (records.length > 0) {
-          completeStoredRoadmapMigration();
-        } else if (!isStoredRoadmapMigrationComplete()) {
-          const stored = getStoredRoadmap();
-          if (stored !== null) {
-            try {
-              const legacyProgress = getLegacyProgress(stored);
-
-              if (legacyProgress.length > 0) {
-                records = await bulkImportRoadmapProgressRequest(legacyProgress);
-                resolvedRoadmap = mergeProgress(records);
-              }
-
-              completeStoredRoadmapMigration();
-            } catch (migrationError) {
-              if (isActive) {
-                setRoadmap(stored.length > 0 ? stored : mergeProgress([]));
-                setError(getUserFriendlyApiError(migrationError, "load"));
-              }
-              return;
-            }
-          }
-        }
+        const records = await fetchRoadmapProgress();
 
         if (isActive) {
-          setRoadmap(resolvedRoadmap);
+          persistedProgressRef.current = seedPersistedProgressFromRecords(records);
+          setRoadmap(() => mergeProgress(records));
           setError(null);
         }
       } catch (loadError) {
         if (isActive) {
-          setRoadmap(mergeProgress([]));
+          persistedProgressRef.current = new Map();
+          setRoadmap(() => mergeProgress([]));
           setError(getUserFriendlyApiError(loadError, "load"));
         }
       } finally {
@@ -166,54 +277,33 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
     return () => {
       isActive = false;
     };
-  }, [reloadToken]);
+  }, [reloadToken, setRoadmap]);
 
   const updateMastery = useCallback(
     async (topicId: string, mastery: MasteryLevel) => {
-      try {
-        const topic = roadmap
-          .flatMap((category) => category.topics)
-          .find((candidate) => candidate.id === topicId);
-        if (!topic) throw new Error("Roadmap topic not found.");
-
-        const defaultTopic = getDefaultTopics().get(topicId);
-        const matchesDefault =
-          defaultTopic !== undefined &&
-          mastery === defaultTopic.mastery &&
-          topic.lastStudied === defaultTopic.lastStudied;
-
-        if (matchesDefault) {
-          await deleteRoadmapProgressOverrideRequest(topicId);
-        } else {
-          await upsertRoadmapProgressRequest(
-            topicId,
-            mastery,
-            topic.lastStudied ?? null,
-          );
-        }
-
-        setRoadmap((previous) =>
-          previous.map((category) => ({
-            ...category,
-            topics: category.topics.map((currentTopic) =>
-              currentTopic.id === topicId
-                ? { ...currentTopic, mastery }
-                : currentTopic,
-            ),
-          })),
-        );
-        setError(null);
-        return true;
-      } catch {
-        return false;
+      if (!topicExistsInCatalog(topicId)) {
+        return mutationFailed(new Error("Topic not found."));
       }
+
+      setRoadmap((previous) =>
+        applyMasteryUpdate(previous, topicId, mastery),
+      );
+
+      return enqueueTopicMutation(topicId, mastery);
     },
-    [roadmap],
+    [enqueueTopicMutation, setRoadmap],
   );
 
   return (
     <RoadmapContext.Provider
-      value={{ roadmap, isHydrated, error, reload, updateMastery }}
+      value={{
+        roadmap,
+        isHydrated,
+        error,
+        pendingTopicIds,
+        reload,
+        updateMastery,
+      }}
     >
       {children}
     </RoadmapContext.Provider>

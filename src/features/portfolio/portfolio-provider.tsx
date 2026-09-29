@@ -9,16 +9,15 @@ import {
   type ReactNode,
 } from "react";
 import {
-  completeStoredPortfolioMigration,
-  getStoredProjects,
-  isStoredPortfolioMigrationComplete,
-} from "@/lib/storage";
-import {
   getUserFriendlyApiError,
   type UserFriendlyError,
 } from "@/lib/api/user-friendly-error";
 import {
-  bulkImportPortfolioProjectsRequest,
+  mutationFailed,
+  mutationOk,
+  type MutationResult,
+} from "@/lib/api/mutation-result";
+import {
   createPortfolioProjectRequest,
   deletePortfolioProjectRequest,
   fetchPortfolioProjects,
@@ -33,9 +32,9 @@ interface PortfolioContextType {
   isHydrated: boolean;
   error: UserFriendlyError | null;
   reload: () => Promise<void>;
-  addProject: (project: ProjectInput) => Promise<boolean>;
-  updateProject: (id: string, project: ProjectInput) => Promise<boolean>;
-  deleteProject: (id: string) => Promise<boolean>;
+  addProject: (project: ProjectInput) => Promise<MutationResult>;
+  updateProject: (id: string, project: ProjectInput) => Promise<MutationResult>;
+  deleteProject: (id: string) => Promise<MutationResult>;
 }
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(
@@ -66,20 +65,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        let loaded = await fetchPortfolioProjects();
-
-        if (loaded.length > 0) {
-          completeStoredPortfolioMigration();
-        } else if (!isStoredPortfolioMigrationComplete()) {
-          const stored = getStoredProjects();
-          if (stored !== null) {
-            if (stored.length > 0) {
-              loaded = await bulkImportPortfolioProjectsRequest(stored);
-            }
-
-            completeStoredPortfolioMigration();
-          }
-        }
+        const loaded = await fetchPortfolioProjects();
 
         if (isActive) {
           setProjects(sortProjects(loaded));
@@ -106,9 +92,9 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       const created = await createPortfolioProjectRequest(project);
       setProjects((previous) => sortProjects([created, ...previous]));
       setError(null);
-      return true;
-    } catch {
-      return false;
+      return mutationOk();
+    } catch (createError) {
+      return mutationFailed(createError);
     }
   }, []);
 
@@ -121,9 +107,9 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         ),
       );
       setError(null);
-      return true;
-    } catch {
-      return false;
+      return mutationOk();
+    } catch (updateError) {
+      return mutationFailed(updateError);
     }
   }, []);
 
@@ -134,9 +120,9 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         previous.filter((project) => project.id !== id),
       );
       setError(null);
-      return true;
-    } catch {
-      return false;
+      return mutationOk();
+    } catch (deleteError) {
+      return mutationFailed(deleteError);
     }
   }, []);
 

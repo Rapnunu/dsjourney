@@ -1,6 +1,6 @@
-import type { RoadmapCategory } from "./types";
+import type { RoadmapCategory, RoadmapTopic } from "./types";
 
-export const mockRoadmapData: RoadmapCategory[] = [
+const roadmapCatalogSource: RoadmapCategory[] = [
   {
     id: "python",
     name: "Python",
@@ -307,3 +307,25 @@ export const mockRoadmapData: RoadmapCategory[] = [
     ],
   },
 ];
+
+function stripCatalogProgress(categories: RoadmapCategory[]): RoadmapCategory[] {
+  return categories.map((category) => ({
+    ...category,
+    topics: category.topics.map(
+      ({ id, name, difficulty, estimatedHours, resourceLink }): RoadmapTopic => ({
+        id,
+        name,
+        difficulty,
+        estimatedHours,
+        ...(resourceLink ? { resourceLink } : {}),
+        mastery: "not_started",
+      }),
+    ),
+  }));
+}
+
+/** Shared roadmap curriculum without user-specific progress. */
+export const roadmapCatalogData = stripCatalogProgress(roadmapCatalogSource);
+
+/** @deprecated Use roadmapCatalogData for authenticated runtime state. */
+export const mockRoadmapData = roadmapCatalogData;

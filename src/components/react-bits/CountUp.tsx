@@ -30,6 +30,7 @@ export default function CountUp({
   const ref = useRef<HTMLSpanElement>(null);
   const reducedMotion = usePrefersReducedMotion();
   const hasAnimatedRef = useRef(false);
+  const previousToRef = useRef(to);
   const motionValue = useMotionValue(direction === "down" ? to : from);
 
   const damping = 20 + 40 * (1 / duration);
@@ -54,26 +55,37 @@ export default function CountUp({
   const initialDisplay = direction === "down" ? to : from;
 
   useEffect(() => {
-    if (ref.current) {
+    if (ref.current && !hasAnimatedRef.current) {
       ref.current.textContent = reducedMotion
         ? formatValue(to)
         : formatValue(initialDisplay);
     }
-  }, [from, to, direction, formatValue, reducedMotion, initialDisplay]);
+  }, [formatValue, initialDisplay, reducedMotion, to]);
 
   useEffect(() => {
-    if (reducedMotion && ref.current) {
-      ref.current.textContent = formatValue(to);
+    if (reducedMotion) {
+      if (ref.current) {
+        ref.current.textContent = formatValue(to);
+      }
+      previousToRef.current = to;
       return;
     }
 
-    if (isInView && startWhen && !hasAnimatedRef.current) {
+    if (!isInView || !startWhen) return;
+
+    if (!hasAnimatedRef.current) {
       const timeoutId = setTimeout(() => {
         hasAnimatedRef.current = true;
         motionValue.set(direction === "down" ? from : to);
+        previousToRef.current = to;
       }, delay * 1000);
 
       return () => clearTimeout(timeoutId);
+    }
+
+    if (previousToRef.current !== to) {
+      previousToRef.current = to;
+      motionValue.set(to);
     }
   }, [
     isInView,

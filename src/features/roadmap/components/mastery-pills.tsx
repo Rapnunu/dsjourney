@@ -6,28 +6,41 @@ import { type MasteryLevel, MASTERY_CONFIG } from "../types";
 interface MasteryPillsProps {
   currentLevel: MasteryLevel;
   onSelect: (level: MasteryLevel) => void;
+  isPending?: boolean;
 }
 
 const masteryOrder: MasteryLevel[] = ["not_started", "learning", "practiced", "mastered"];
 
-export function MasteryPills({ currentLevel, onSelect }: MasteryPillsProps) {
+export function MasteryPills({
+  currentLevel,
+  onSelect,
+  isPending = false,
+}: MasteryPillsProps) {
   return (
-    <div className="flex items-center gap-1.5">
+    <div
+      className={`flex items-center gap-1.5 ${isPending ? "opacity-70" : ""}`}
+      aria-busy={isPending}
+    >
       {masteryOrder.map((level) => {
         const config = MASTERY_CONFIG[level];
         const isActive = currentLevel === level;
+        const isDisabled = isActive;
 
         return (
           <button
             key={level}
+            type="button"
+            disabled={isDisabled}
             onClick={(e) => {
               e.stopPropagation();
+              if (isDisabled) return;
               onSelect(level);
             }}
             className={`
               relative flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium
               transition-all duration-150 whitespace-nowrap
-              focus-ring cursor-pointer
+              focus-ring
+              ${isDisabled ? "cursor-not-allowed" : "cursor-pointer"}
               ${isActive
                 ? `${config.activeBg} ${config.activeColor} ring-1 ${config.activeBorder}`
                 : `bg-transparent ${config.color} opacity-45 hover:opacity-75`

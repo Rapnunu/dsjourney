@@ -1,16 +1,8 @@
-import { PageHeader } from "@/components/ui/page-header";
-import { Map } from "lucide-react";
 import { RoadmapView } from "@/features/roadmap";
+import { createPrivateMetadata } from "@/lib/metadata";
+
+export const metadata = createPrivateMetadata({ title: "Roadmap" });
 
 export default function RoadmapPage() {
-  return (
-    <>
-      <PageHeader
-        title="Roadmap"
-        subtitle="Build your Data Science foundation step by step."
-        icon={<Map size={22} />}
-      />
-      <RoadmapView />
-    </>
-  );
+  return <RoadmapView />;
 }

@@ -1,5 +1,6 @@
 import { requireUser } from "@/lib/auth/require-user";
 import { readJsonBody } from "@/lib/api/parse-json";
+import { enforceRateLimit } from "@/lib/api/rate-limit";
 import {
   handleRouteError,
   jsonData,
@@ -16,6 +17,12 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     const user = await requireUser();
+    const rateLimitResponse = await enforceRateLimit(user.id, "import");
+
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const body = await readJsonBody(request);
     const parsed = parseProjectsImport(body);
 

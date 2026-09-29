@@ -1,0 +1,424 @@
+{
+  "id": "78c9cd9a-5d92-4042-bdf7-9bf1ad8a9f27",
+  "prevId": "c0b72833-9218-4839-b924-cd7be05781ef",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.api_rate_limits": {
+      "name": "api_rate_limits",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bucket_key": {
+          "name": "bucket_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "window_start": {
+          "name": "window_start",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "request_count": {
+          "name": "request_count",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        }
+      },
+      "indexes": {
+        "api_rate_limits_window_start_idx": {
+          "name": "api_rate_limits_window_start_idx",
+          "columns": [
+            {
+              "expression": "window_start",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "api_rate_limits_user_id_bucket_key_window_start_pk": {
+          "name": "api_rate_limits_user_id_bucket_key_window_start_pk",
+          "columns": [
+            "user_id",
+            "bucket_key",
+            "window_start"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "api_rate_limits_bucket_key_not_blank": {
+          "name": "api_rate_limits_bucket_key_not_blank",
+          "value": "btrim(\"api_rate_limits\".\"bucket_key\") <> ''"
+        },
+        "api_rate_limits_request_count_positive": {
+          "name": "api_rate_limits_request_count_positive",
+          "value": "\"api_rate_limits\".\"request_count\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.portfolio_projects": {
+      "name": "portfolio_projects",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "technologies": {
+          "name": "technologies",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "github_url": {
+          "name": "github_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "demo_url": {
+          "name": "demo_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "highlights": {
+          "name": "highlights",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "portfolio_projects_user_status_idx": {
+          "name": "portfolio_projects_user_status_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "portfolio_projects_user_id_id_pk": {
+          "name": "portfolio_projects_user_id_id_pk",
+          "columns": [
+            "user_id",
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "portfolio_projects_id_not_blank": {
+          "name": "portfolio_projects_id_not_blank",
+          "value": "btrim(\"portfolio_projects\".\"id\") <> ''"
+        },
+        "portfolio_projects_title_not_blank": {
+          "name": "portfolio_projects_title_not_blank",
+          "value": "btrim(\"portfolio_projects\".\"title\") <> ''"
+        },
+        "portfolio_projects_status_valid": {
+          "name": "portfolio_projects_status_valid",
+          "value": "\"portfolio_projects\".\"status\" in ('planned', 'in_progress', 'completed')"
+        },
+        "portfolio_projects_dates_valid": {
+          "name": "portfolio_projects_dates_valid",
+          "value": "\"portfolio_projects\".\"end_date\" is null or \"portfolio_projects\".\"end_date\" >= \"portfolio_projects\".\"start_date\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.roadmap_progress": {
+      "name": "roadmap_progress",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "topic_id": {
+          "name": "topic_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mastery": {
+          "name": "mastery",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_studied": {
+          "name": "last_studied",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "roadmap_progress_user_mastery_idx": {
+          "name": "roadmap_progress_user_mastery_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "mastery",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "roadmap_progress_user_id_topic_id_pk": {
+          "name": "roadmap_progress_user_id_topic_id_pk",
+          "columns": [
+            "user_id",
+            "topic_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "roadmap_progress_topic_id_not_blank": {
+          "name": "roadmap_progress_topic_id_not_blank",
+          "value": "btrim(\"roadmap_progress\".\"topic_id\") <> ''"
+        },
+        "roadmap_progress_mastery_valid": {
+          "name": "roadmap_progress_mastery_valid",
+          "value": "\"roadmap_progress\".\"mastery\" in ('not_started', 'learning', 'practiced', 'mastered')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.study_sessions": {
+      "name": "study_sessions",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "topic_id": {
+          "name": "topic_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "topic_name": {
+          "name": "topic_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category_name": {
+          "name": "category_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "study_date": {
+          "name": "study_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hours_studied": {
+          "name": "hours_studied",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "difficulty_rating": {
+          "name": "difficulty_rating",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "study_sessions_user_date_idx": {
+          "name": "study_sessions_user_date_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "study_date",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "study_sessions_user_id_id_pk": {
+          "name": "study_sessions_user_id_id_pk",
+          "columns": [
+            "user_id",
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "study_sessions_id_not_blank": {
+          "name": "study_sessions_id_not_blank",
+          "value": "btrim(\"study_sessions\".\"id\") <> ''"
+        },
+        "study_sessions_topic_id_not_blank": {
+          "name": "study_sessions_topic_id_not_blank",
+          "value": "btrim(\"study_sessions\".\"topic_id\") <> ''"
+        },
+        "study_sessions_topic_name_not_blank": {
+          "name": "study_sessions_topic_name_not_blank",
+          "value": "btrim(\"study_sessions\".\"topic_name\") <> ''"
+        },
+        "study_sessions_category_name_not_blank": {
+          "name": "study_sessions_category_name_not_blank",
+          "value": "btrim(\"study_sessions\".\"category_name\") <> ''"
+        },
+        "study_sessions_hours_positive": {
+          "name": "study_sessions_hours_positive",
+          "value": "\"study_sessions\".\"hours_studied\" > 0"
+        },
+        "study_sessions_difficulty_valid": {
+          "name": "study_sessions_difficulty_valid",
+          "value": "\"study_sessions\".\"difficulty_rating\" between 1 and 5"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

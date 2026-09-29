@@ -102,10 +102,29 @@ async function request(
   return { response, body };
 }
 
+function parseRetryAfterSeconds(response: Response): number | undefined {
+  const header = response.headers.get("Retry-After");
+
+  if (!header?.trim()) {
+    return undefined;
+  }
+
+  const seconds = Number.parseInt(header.trim(), 10);
+
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    return undefined;
+  }
+
+  return seconds;
+}
+
 function throwApiError(path: string, response: Response, body: unknown): never {
+  const retryAfterSeconds =
+    response.status === 429 ? parseRetryAfterSeconds(response) : undefined;
   const error = new ApiError(
     getErrorMessage(body, "Request failed."),
     response.status,
+    retryAfterSeconds,
   );
 
   if (response.status === 401) {

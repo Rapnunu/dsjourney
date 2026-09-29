@@ -22,5 +22,5 @@ export const MAX_SESSIONS_IMPORT = 500;
 export const MAX_ROADMAP_IMPORT = 500;
 export const MAX_PORTFOLIO_IMPORT = 200;
 
-/** Matches UI and Neon Auth default minimum (Better Auth email/password). */
+/** Legacy API bound; auth passwords use src/lib/auth/password-policy.ts. */
 export const MIN_PASSWORD_LENGTH = 6;

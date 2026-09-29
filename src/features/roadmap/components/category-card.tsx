@@ -11,6 +11,7 @@ interface CategoryCardProps {
   isExpanded: boolean;
   onToggle: () => void;
   onMasteryChange: (topicId: string, level: MasteryLevel) => void;
+  pendingTopicIds: ReadonlySet<string>;
 }
 
 function computeCategoryStats(topics: RoadmapCategory["topics"]) {
@@ -52,6 +53,7 @@ export function CategoryCard({
   isExpanded,
   onToggle,
   onMasteryChange,
+  pendingTopicIds,
 }: CategoryCardProps) {
   const { total, readiness, remainingHours, completed } = computeCategoryStats(
     category.topics
@@ -122,6 +124,7 @@ export function CategoryCard({
               key={topic.id}
               topic={topic}
               onMasteryChange={onMasteryChange}
+              isPending={pendingTopicIds.has(topic.id)}
               isLast={idx === category.topics.length - 1}
             />
           ))}

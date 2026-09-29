@@ -13,8 +13,12 @@ export function jsonOk(status = 200): NextResponse {
   return NextResponse.json({ ok: true }, { status });
 }
 
-export function jsonError(message: string, status: number): NextResponse {
-  return NextResponse.json({ error: message }, { status });
+export function jsonError(
+  message: string,
+  status: number,
+  headers?: HeadersInit,
+): NextResponse {
+  return NextResponse.json({ error: message }, { status, headers });
 }
 
 export function validationErrorResponse(result: {

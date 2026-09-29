@@ -1,5 +1,6 @@
 import { requireUser } from "@/lib/auth/require-user";
 import { readJsonBody } from "@/lib/api/parse-json";
+import { enforceRateLimit } from "@/lib/api/rate-limit";
 import {
   handleRouteError,
   jsonData,
@@ -25,6 +26,12 @@ interface RouteContext {
 export async function PUT(request: Request, context: RouteContext) {
   try {
     const user = await requireUser();
+    const rateLimitResponse = await enforceRateLimit(user.id, "mutation");
+
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const { topicId: rawTopicId } = await context.params;
     const topicIdResult = parseTopicIdParam(rawTopicId);
 
@@ -54,6 +61,12 @@ export async function PUT(request: Request, context: RouteContext) {
 export async function DELETE(_request: Request, context: RouteContext) {
   try {
     const user = await requireUser();
+    const rateLimitResponse = await enforceRateLimit(user.id, "mutation");
+
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const { topicId: rawTopicId } = await context.params;
     const topicIdResult = parseTopicIdParam(rawTopicId);
 

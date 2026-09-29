@@ -186,9 +186,9 @@ export function getReviewTopics(roadmap: RoadmapCategory[]): ReviewTopic[] {
 }
 
 export const mockGoals: TodayGoal[] = [
-  { id: "g-1", label: "Study for 2 hours", completed: true },
+  { id: "g-1", label: "Study for 2 hours", completed: false },
   { id: "g-2", label: "Complete 1 roadmap topic", completed: false },
-  { id: "g-3", label: "Log a study session", completed: true },
+  { id: "g-3", label: "Log a study session", completed: false },
   { id: "g-4", label: "Review 1 weak topic", completed: false },
   { id: "g-5", label: "Practice SQL queries", completed: false },
 ];
