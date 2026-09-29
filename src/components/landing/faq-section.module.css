@@ -6,15 +6,15 @@
 
 .item {
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: 10px;
-  background: #101720;
+  background: var(--bg-surface);
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .item:hover {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: #141d28;
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
 }
 
 .questionHeading {
@@ -35,7 +35,7 @@
 }
 
 .trigger:focus-visible {
-  outline: 2px solid #18b8c6;
+  outline: 2px solid var(--brand-teal);
   outline-offset: -2px;
 }
 
@@ -45,7 +45,7 @@
   font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1.45;
-  color: #f4f7fa;
+  color: var(--text-primary);
 }
 
 @media (min-width: 640px) {
@@ -63,7 +63,7 @@
   width: 1.75rem;
   height: 1.75rem;
   margin-top: 0.125rem;
-  color: #18b8c6;
+  color: var(--brand-teal);
   transform: rotate(0deg);
   transition: transform 200ms ease;
 }
@@ -90,7 +90,7 @@
   padding: 0 1.25rem 1.125rem;
   font-size: 0.9375rem;
   line-height: 1.7;
-  color: #98a6b8;
+  color: var(--text-secondary);
 }
 
 .answer p {
@@ -102,14 +102,14 @@
 }
 
 .inlineLink {
-  color: #18b8c6;
+  color: var(--brand-teal);
   text-decoration: underline;
   text-underline-offset: 3px;
   transition: color 0.15s ease;
 }
 
 .inlineLink:hover {
-  color: #5eead4;
+  color: var(--accent-hover);
 }
 
 @media (min-width: 640px) {

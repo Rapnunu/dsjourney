@@ -43,7 +43,7 @@ export function JourneySection() {
           {stages.map((stage, index) => (
             <ScrollReveal key={stage.title} delayMs={index * 80}>
               <div className="landing-card-hover rounded-2xl border border-border-subtle bg-bg-elevated/50 p-6 backdrop-blur-sm">
-                <div className="mb-4 flex items-center gap-2 text-brand-cyan">
+                <div className="mb-4 flex items-center gap-2 text-brand-teal">
                   <span className="text-xs font-semibold uppercase tracking-wider">
                     Step {stage.step}
                   </span>

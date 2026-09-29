@@ -49,7 +49,7 @@ function ThemeSwitch({
       <div
         role="group"
         aria-label="Theme"
-        className={`theme-switch-track relative flex w-full rounded-full border p-0.5 ${className}`}
+        className={`theme-switch-track relative inline-flex min-w-[4.5rem] rounded-full border p-0.5 ${className}`}
       >
         <span
           aria-hidden="true"

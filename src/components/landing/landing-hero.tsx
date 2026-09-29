@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { DsjourneyLogo } from "@/components/brand/dsjourney-logo";
+import { useTheme } from "@/components/theme/theme-provider";
 import { SITE_NAME } from "@/lib/site-config";
 import { LandingBackground } from "@/components/landing/landing-background";
 import { LandingNavbar } from "@/components/landing/landing-navbar";
@@ -10,6 +11,9 @@ import FadeContent from "@/components/react-bits/FadeContent";
 import Magnet from "@/components/react-bits/Magnet";
 
 export function LandingHero() {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   return (
     <section className="relative min-h-screen">
       <LandingBackground />
@@ -18,7 +22,7 @@ export function LandingHero() {
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl items-center px-5 pb-24 pt-28 sm:px-8 lg:px-10">
         <div className="max-w-2xl">
           <FadeContent triggerOnMount delay={0} duration={0.65} y={12}>
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-brand-cyan sm:text-sm">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-brand-teal sm:text-sm">
               Your Data Science Career Journey
             </p>
           </FadeContent>
@@ -27,8 +31,8 @@ export function LandingHero() {
             <h1 className="mb-6 flex items-center gap-4">
               <DsjourneyLogo
                 variant="mark"
-                tone="public"
-                brightDsLetters
+                tone={isDark ? "public" : "default"}
+                brightDsLetters={isDark}
                 className="h-14 w-14 shrink-0 sm:h-16 sm:w-16"
                 aria-hidden="true"
               />
@@ -71,7 +75,7 @@ export function LandingHero() {
               </Magnet>
               <Link
                 href="/auth"
-                className="focus-ring inline-flex items-center justify-center rounded-full border border-border-strong bg-bg-elevated/80 px-7 py-3.5 text-sm font-semibold text-text-primary backdrop-blur-sm transition-colors hover:bg-bg-surface-hover"
+                className="focus-ring inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-border-strong bg-bg-elevated/80 px-7 py-3.5 text-sm font-semibold text-text-primary backdrop-blur-sm transition-colors hover:bg-bg-surface-hover"
               >
                 Sign In
               </Link>

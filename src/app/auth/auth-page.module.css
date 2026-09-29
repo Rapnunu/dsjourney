@@ -194,14 +194,14 @@ html.dark .authCard {
 .authCard input:-webkit-autofill:hover,
 .authCard input:-webkit-autofill:focus,
 .authCard input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #11161d inset !important;
-  box-shadow: 0 0 0 1000px #11161d inset !important;
-  -webkit-text-fill-color: #f4f7fa !important;
-  caret-color: #f4f7fa;
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-input) inset !important;
+  box-shadow: 0 0 0 1000px var(--bg-input) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary);
   transition: background-color 9999s ease-out 0s;
 }
 
 .authCard input:autofill {
-  box-shadow: 0 0 0 1000px #11161d inset !important;
-  -webkit-text-fill-color: #f4f7fa !important;
+  box-shadow: 0 0 0 1000px var(--bg-input) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
 }

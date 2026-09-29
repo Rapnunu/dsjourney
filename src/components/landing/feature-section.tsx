@@ -62,7 +62,7 @@ export function FeatureSection() {
             return (
               <ScrollReveal key={feature.title} delayMs={index * 70}>
                 <article className="landing-card-hover h-full rounded-2xl border border-border-subtle bg-gradient-to-b from-bg-elevated/80 to-transparent p-6">
-                  <div className="mb-4 inline-flex rounded-xl bg-brand-teal/10 p-3 text-brand-cyan">
+                  <div className="mb-4 inline-flex rounded-xl bg-brand-teal/10 p-3 text-brand-teal">
                     <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
                   </div>
                   <h3 className="text-lg font-semibold text-text-primary">{feature.title}</h3>

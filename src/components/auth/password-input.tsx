@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { authInputClassName } from "@/components/auth/auth-form-styles";
 import { FieldError } from "@/components/ui/field-error";
-
-const inputClassName =
-  "w-full rounded-[9px] border border-white/10 bg-[#11161D] px-3 py-2.5 pr-10 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-teal focus:outline-none focus:ring-1 focus:ring-brand-teal transition-colors h-11";
 
 interface PasswordInputProps {
   id: string;
@@ -40,7 +38,7 @@ export function PasswordInput({
           autoComplete={autoComplete}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className={inputClassName}
+          className={`${authInputClassName} pr-10`}
           placeholder={placeholder}
           readOnly
           onFocus={(event) => event.currentTarget.removeAttribute("readonly")}

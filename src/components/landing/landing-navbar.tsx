@@ -23,11 +23,11 @@ export function LandingNavbar() {
           />
         </Link>
 
-        <nav className="flex items-center gap-3 sm:gap-4" aria-label="Main">
-          <ThemeToggleCompact />
+        <nav className="flex shrink-0 items-center gap-3 sm:gap-4" aria-label="Main">
+          <ThemeToggleCompact className="w-[5.5rem] shrink-0" />
           <Link
             href="/auth"
-            className="focus-ring rounded-full border border-border-strong bg-bg-elevated/80 px-5 py-2 text-sm font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-bg-surface-hover"
+            className="focus-ring inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-border-strong bg-bg-elevated/80 px-5 py-2.5 text-sm font-medium text-text-primary backdrop-blur-sm transition-colors hover:bg-bg-surface-hover"
           >
             Sign In
           </Link>

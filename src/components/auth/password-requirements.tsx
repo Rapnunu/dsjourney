@@ -20,7 +20,7 @@ export function PasswordRequirements({
   return (
     <div
       id={id}
-      className="rounded-[9px] border border-white/10 bg-[#11161D]/60 px-3 py-2.5"
+      className="rounded-[9px] border border-border-subtle bg-bg-elevated px-3 py-2.5"
       aria-live="polite"
     >
       <p className="mb-2 text-xs font-medium text-text-secondary">

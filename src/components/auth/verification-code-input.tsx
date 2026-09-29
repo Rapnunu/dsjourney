@@ -7,6 +7,7 @@ import {
   type ClipboardEvent,
   type KeyboardEvent,
 } from "react";
+import { authCodeCellClassName } from "@/components/auth/auth-form-styles";
 import { VERIFICATION_CODE_LENGTH } from "@/lib/auth/constants";
 
 interface VerificationCodeInputProps {
@@ -117,7 +118,7 @@ export function VerificationCodeInput({
             value={digit}
             disabled={disabled}
             aria-label={`Digit ${index + 1} of ${length}`}
-            className="focus-ring h-11 w-9 rounded-[9px] border border-white/10 bg-[#11161D] text-center text-base font-semibold text-text-primary transition-colors focus:border-brand-teal focus:ring-1 focus:ring-brand-teal sm:h-11 sm:w-10"
+            className={authCodeCellClassName}
             onChange={(event) => updateDigit(index, event.target.value)}
             onKeyDown={(event) => handleKeyDown(index, event)}
             onPaste={handlePaste}

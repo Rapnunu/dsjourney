@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
+import { authOAuthButtonClassName } from "@/components/auth/auth-form-styles";
 import { GoogleIcon } from "./google-icon";
 
 interface GoogleSignInButtonProps {
@@ -52,7 +53,7 @@ export function GoogleSignInButton({
       onClick={handleGoogleSignIn}
       disabled={disabled || isLoading}
       aria-label={label}
-      className="focus-ring flex h-11 w-full items-center justify-center gap-3 rounded-[9px] border border-white/10 bg-[#11161D] px-4 text-sm font-medium text-text-primary transition-colors hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-60"
+      className={authOAuthButtonClassName}
     >
       {isLoading ? (
         <LoaderCircle size={18} className="animate-spin" aria-hidden="true" />

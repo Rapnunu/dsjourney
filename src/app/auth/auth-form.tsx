@@ -9,7 +9,12 @@ import {
 } from "react";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { DsjourneyLogo } from "@/components/brand/dsjourney-logo";
+import {
+  authInputClassName,
+  authSecondaryButtonClassName,
+} from "@/components/auth/auth-form-styles";
 import { PasswordInput } from "@/components/auth/password-input";
+import { useTheme } from "@/components/theme/theme-provider";
 import {
   clearIdleTimeoutSignOutFlag,
   clearSigningOutFlag,
@@ -67,9 +72,6 @@ function navigateAfterAuthSuccess(): void {
   window.location.replace("/today");
 }
 
-const emailInputClassName =
-  "w-full rounded-[9px] border border-white/10 bg-[#11161D] px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-teal focus:outline-none focus:ring-1 focus:ring-brand-teal transition-colors h-11";
-
 function preventAutofillOnFocus(event: FocusEvent<HTMLInputElement>): void {
   event.currentTarget.removeAttribute("readonly");
 }
@@ -78,7 +80,7 @@ function AuthOrDivider() {
   return (
     <div className="relative my-5">
       <div className="absolute inset-0 flex items-center" aria-hidden="true">
-        <div className="w-full border-t border-white/[0.08]" />
+        <div className="w-full border-t border-border-subtle" />
       </div>
       <p className="relative mx-auto w-fit px-3 text-sm text-text-muted">Or</p>
     </div>
@@ -86,9 +88,15 @@ function AuthOrDivider() {
 }
 
 function AuthCardIcon() {
+  const { theme } = useTheme();
+
   return (
     <div className="mb-[18px] flex justify-center">
-      <DsjourneyLogo variant="icon" tone="public" className="h-10 w-10" />
+      <DsjourneyLogo
+        variant="icon"
+        tone={theme === "dark" ? "public" : "default"}
+        className="h-10 w-10"
+      />
     </div>
   );
 }
@@ -130,7 +138,7 @@ function SecondaryButton({
     <button
       type="button"
       onClick={onClick}
-      className="focus-ring h-11 w-full rounded-[9px] border border-white/10 bg-[#11161D] px-4 text-sm font-medium text-text-secondary transition-colors hover:bg-white/[0.04]"
+      className={authSecondaryButtonClassName}
     >
       {children}
     </button>
@@ -675,7 +683,7 @@ export function AuthForm({
                 setEmail(event.target.value);
                 clearFieldError("email");
               }}
-              className={emailInputClassName}
+              className={authInputClassName}
               placeholder="Email"
               readOnly
               onFocus={preventAutofillOnFocus}
@@ -950,7 +958,7 @@ export function AuthForm({
                 setEmail(event.target.value);
                 clearFieldError("email");
               }}
-              className={emailInputClassName}
+              className={authInputClassName}
               placeholder="Email"
               readOnly
               onFocus={preventAutofillOnFocus}
@@ -1022,7 +1030,7 @@ export function AuthForm({
                     setAgreedToTerms(event.target.checked);
                     clearFieldError("legalAgreement");
                   }}
-                  className="focus-ring mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-[#11161D] text-brand-teal"
+                  className="focus-ring mt-0.5 h-4 w-4 shrink-0 rounded border-border-strong bg-bg-input text-brand-teal"
                   aria-invalid={Boolean(fieldErrors.legalAgreement)}
                 />
                 <span>
