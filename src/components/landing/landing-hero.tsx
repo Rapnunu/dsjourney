@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { DsjourneyLogo } from "@/components/brand/dsjourney-logo";
+import { SITE_NAME } from "@/lib/site-config";
 import { LandingBackground } from "@/components/landing/landing-background";
 import { LandingNavbar } from "@/components/landing/landing-navbar";
 import FadeContent from "@/components/react-bits/FadeContent";
 import Magnet from "@/components/react-bits/Magnet";
-import SplitText from "@/components/react-bits/SplitText";
 
 export function LandingHero() {
   return (
@@ -23,35 +23,21 @@ export function LandingHero() {
             </p>
           </FadeContent>
 
-          <div className="mb-6 flex items-end gap-4">
-            <SplitText
-              text="DSJourney"
-              tag="h1"
-              splitType="words"
-              delay={80}
-              duration={0.65}
-              ease="power3.out"
-              from={{ opacity: 0, y: 14 }}
-              to={{ opacity: 1, y: 0 }}
-              textAlign="left"
-              triggerOnMount
-              className="text-5xl font-bold tracking-tight text-text-primary sm:text-6xl lg:text-7xl"
-            />
-            <FadeContent
-              triggerOnMount
-              delay={0.2}
-              duration={0.65}
-              y={10}
-              className="hidden sm:block"
-            >
+          <FadeContent triggerOnMount delay={0.12} duration={0.65} y={14}>
+            <h1 className="mb-6 flex items-center gap-4">
               <DsjourneyLogo
                 variant="mark"
                 tone="public"
-                className="h-16 w-16 opacity-90"
+                brightDsLetters
+                className="h-14 w-14 shrink-0 sm:h-16 sm:w-16"
                 aria-hidden="true"
               />
-            </FadeContent>
-          </div>
+              <span className="text-5xl font-bold tracking-tight text-text-primary sm:text-6xl lg:text-7xl">
+                <span className="text-brand-teal">DS</span>Journey
+              </span>
+              <span className="sr-only">{SITE_NAME}</span>
+            </h1>
+          </FadeContent>
 
           <FadeContent triggerOnMount delay={0.28} duration={0.65} y={14}>
             <p className="text-xl font-medium text-text-primary sm:text-2xl">

@@ -188,12 +188,13 @@ export function DsjourneyLogo({
         x="52"
         y="32"
         fontFamily="system-ui, sans-serif"
-        fontSize="22"
+        fontSize="21"
         fontWeight="700"
         fill="currentColor"
+        letterSpacing="-0.02em"
       >
-        DS
-        <tspan fontWeight="500">Journey</tspan>
+        <tspan fill="#18B8C6">DS</tspan>
+        <tspan>Journey</tspan>
       </text>
       {showTagline && (
         <text
