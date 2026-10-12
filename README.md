@@ -172,7 +172,7 @@ drizzle/            # SQL migrations
 Built by **Raphael Edrian Tan** — personal Data Science internship prep tracker.
 
 - **Live:** [dsjourney.vercel.app](https://dsjourney.vercel.app/)
-- **Repository:** [github.com/Rapnunu/ds-prep-tracker](https://github.com/Rapnunu/ds-prep-tracker)
+- **Repository:** [github.com/Rapnunu/ds-prep-tracker](https://github.com/Rapnunu/dsjourney)
 
 ---
 
