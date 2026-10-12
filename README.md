@@ -142,7 +142,7 @@ npx drizzle-kit push
 
 ### Deploy on Vercel
 
-1. Import [Rapnunu/ds-prep-tracker](https://github.com/Rapnunu/ds-prep-tracker) into Vercel (Next.js, root `.`).
+1. Import [Rapnunu/ds-prep-tracker](https://github.com/Rapnunu/dsjourney) into Vercel (Next.js, root `.`).
 2. Set production env vars (`DATABASE_URL`, `NEON_AUTH_*`, `NEXT_PUBLIC_SITE_URL`, etc.).
 3. Add your Vercel URL to **Neon Auth trusted domains**.
 4. Ship from `main`. Confirm `/`, `/auth`, and `/today` after deploy.
